@@ -1,0 +1,22 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.Application.index
+
+GET     /schools/:id                             controllers.SchoolController.findById(id:Long)
+GET     /schools/:school/students/:id             controllers.StudentController.findById(id:Long, school:Long)
+GET     /schools/:school/students/:id/rates
+GET     /schools/:school/students/:id/rebates
+
+
+POT    /schools                                controllers.SchoolController.addSchool
+POST    /schools/:school/students              controllers.StudentController.addStudent
+POST    /schools/:school/students/:id/rates
+POST    /schools/:school/students/:id/rebates
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+    
