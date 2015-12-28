@@ -3,20 +3,22 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index
+GET         /                                                 controllers.Application.index
 
-GET     /schools/:id                             controllers.SchoolController.findById(id:Long)
-GET     /schools/:school/students/:id             controllers.StudentController.findById(id:Long, school:Long)
-GET     /schools/:school/students/:id/rates
-GET     /schools/:school/students/:id/rebates
+GET         /schools/:school                                  controllers.SchoolsController.findById(school:Long)
+GET         /schools/:school/students/:student                controllers.StudentsController.findById(student:Long, school:Long)
+GET         /schools/:school/students/:student/rates          controllers.StudentsController.appliedRates(student:Long, school:Long)
+GET         /schools/:school/students/:student/rebates        controllers.StudentsController.appliedRebates(student:Long, school:Long)
 
 
-POT    /schools                                controllers.SchoolController.addSchool
-POST    /schools/:school/students              controllers.StudentController.addStudent
-POST    /schools/:school/students/:id/rates
-POST    /schools/:school/students/:id/rebates
+POST        /schools                                          controllers.SchoolsController.addSchool
+POST        /schools/:school/students                         controllers.StudentsController.addStudent(school:Long)
+POST        /schools/:school/students/:student/rates          controllers.StudentsController.addRate(student:Long, school:Long)
+POST        /schools/:school/students/:student/rebates        controllers.StudentsController.addRebate(student:Long, school:Long)
+POST        /schools/:school/rates                            controllers.RatesController.addRate(school:Long)
+POST        /schools/:school/rebates                          controllers.RebatesController.addRebate(school:Long)
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET         /assets/*file                                     controllers.Assets.at(path="/public", file)
 
     

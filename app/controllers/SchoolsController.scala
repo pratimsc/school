@@ -5,9 +5,9 @@ import play.api.mvc.Controller
 /**
   * Created by pratimsc on 27/12/15.
   */
-class SchoolController extends  Controller{
+object SchoolsController extends Controller {
 
-  def findById(id:Long)= {
+  def findById(school: Long) = {
     TODO
   }
 
