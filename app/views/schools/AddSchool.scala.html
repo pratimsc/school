@@ -1,0 +1,29 @@
+@import models.SchoolRegistration
+
+
+@(registerSchoolForm: Form[SchoolRegistration])(implicit messages: Messages)
+
+@main("Register School") {
+
+    <div id="register_school" class="form">
+
+    @helper.form(action = routes.SchoolsController.addSchool()) {
+        <div>
+            @helper.inputText(registerSchoolForm("school_name"), '_label -> "School Name", 'required -> "required", 'tabindex -> "1", '_showConstraints -> false)
+            <br>
+            <div>
+                <label> School Address</label>
+                @helper.inputText(registerSchoolForm("school_address.first_line"), '_label -> "Line 1", 'tabindex -> "2", '_showConstraints -> false)
+                @helper.inputText(registerSchoolForm("school_address.second_line"), '_label -> "Line 2", 'tabindex -> "3", '_showConstraints -> false)
+                @helper.inputText(registerSchoolForm("school_address.city"), '_label -> "City/Village", 'tabindex -> "4", '_showConstraints -> false)
+                @helper.inputText(registerSchoolForm("school_address.county"), '_label -> "County", 'tabindex -> "5", '_showConstraints -> false)
+                @helper.inputText(registerSchoolForm("school_address.country"), '_label -> "Country", 'tabindex -> "6", 'required -> "required", '_showConstraints -> false)
+                @helper.inputText(registerSchoolForm("school_address.zip_code"), '_label -> "Line 2", 'tabindex -> "7", 'required -> "required", '_showConstraints -> false)
+            </div>
+        </div>
+        <input type="reset" value="Cancel" type="button">
+        <input type="submit" value="Register School" type="button">
+        }
+    </div>
+}
+

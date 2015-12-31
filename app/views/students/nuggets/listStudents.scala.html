@@ -1,0 +1,44 @@
+@(students: List[Student])(implicit messages: Messages)
+
+
+<div id="student_list" class="student_list">
+
+    @students match {
+
+        case Nil => {
+            <div> @Messages("school.student.nodata")</div>
+        }
+
+        case h :: t => {
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <td>Student Id</td>
+                        <td>First Name</td>
+                        <td>Middle Name(s)</td>
+                        <td>Last Name</td>
+                        <td>Gender</td>
+                        <td>Status</td>
+                    </tr>
+                </thead>
+                <tbody>
+                @students.map { student =>
+                    <tr>
+                        <td> @student.student_id</td>
+                        <td> @student.name.first </td>
+                        <td>@student.name.middle</td>
+                        <td>@student.name.last</td>
+                        <td>@student.gender</td>
+                        <td>@student.status</td>
+
+                        <td>
+                            <a class="btn btn-success" href="@routes.StudentsController.findById(student.student_id, student.school.school_id)" role="button">
+                                View Details</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    }
+</div>

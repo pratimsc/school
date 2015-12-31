@@ -1,0 +1,41 @@
+@(sc: Option[School])(implicit messages: Messages)
+
+@main("School Detail ") {
+    @sc match {
+        case Some(school) => {
+            <div id="school_detail">
+                <p><label>School Id :</label> @school.school_id</p>
+                <p><label>School Name: </label> @school.school_name</p>
+                <p>
+                    <label>School Address:</label>
+            <address>
+                @school.school_address.first_line.getOrElse() ,
+                @school.school_address.second_line.getOrElse() ,
+                @school.school_address.city.getOrElse() ,
+                @school.school_address.county.getOrElse() ,
+                @school.school_address.country ,
+                @school.school_address.zip_code
+            </address>
+
+                </p>
+
+
+                <div>
+                    <a class="btn btn-danger" href="#" role="button">Delete</a>
+                    <a class="btn btn-warning" href="#" role="button">Edit</a>
+                    <a class="btn btn-primary" href="@routes.StudentsController.findAll(school.school_id)" role="button">Students</a>
+                    <a class="btn btn-primary" href="#" role="button">Teachers</a>
+                    <a class="btn btn-primary" href="#" role="button">Terms</a>
+                    <a class="btn btn-primary" href="#" role="button">Holidays</a>
+                    <a class="btn btn-primary" href="#" role="button">Students</a>
+                    <a class="btn btn-primary" href="#" role="button">Attendance</a>
+                    <a class="btn btn-primary" href="#" role="button">Rates</a>
+                    <a class="btn btn-primary" href="#" role="button">Rebates</a>
+                </div>
+            </div>
+        }
+        case None => {
+            <div> @Messages("school.nodata")</div>
+        }
+    }
+}
