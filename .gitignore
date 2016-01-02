@@ -16,6 +16,7 @@ dist
 
 *.class
 *.log
+*.odt*
 
 # sbt specific
 .cache
