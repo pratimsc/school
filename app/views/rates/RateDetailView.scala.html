@@ -1,0 +1,7 @@
+@(guardian: Option[Guardian])(implicit messages: Messages)
+
+@views.html.common.nuggets.head("Parent Detail View")
+
+@views.html.guardians.nuggets.detailGuardian(guardian)
+
+@views.html.common.nuggets.body_scripts()

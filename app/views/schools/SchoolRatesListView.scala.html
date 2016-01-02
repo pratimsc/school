@@ -1,0 +1,9 @@
+@(sl: List[Student], school: School)(implicit messages: Messages)
+
+@views.html.common.nuggets.head("School Student List View")
+
+@views.html.schools.nuggets.detailSchool(Some(school))
+
+@students.nuggets.listStudents(sl)
+
+@views.html.common.nuggets.body_scripts()
