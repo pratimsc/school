@@ -1,71 +1,58 @@
-@import org.maikalal.common.util.DateUtility
-
 @(st: Option[Guardian])(implicit messages: Messages)
 
 @st match {
-    case Some(student) => {
-        <div id="student_detail">
+    case Some(guardian) => {
+        <div id="guardian_detail">
             <div>
                 <p>
-                    <label>Student Id </label>
+                    <label>guardian Id </label> @guardian.guardian_id
                 </p>
             </div>
-            <div id="student_name">
-                <p><label>First Name</label> @student.name.first</p>
-                <p><label>Last Name</label> @student.name.last</p>
-                <p><label> Middle Name</label> @student.name.middle</p>
+            <div id="guardian_name">
+                <p><label>First Name</label> @guardian.name.first</p>
+                <p><label>Last Name</label> @guardian.name.last</p>
+                <p><label> Middle Name</label> @guardian.name.middle.getOrElse("")</p>
             </div>
 
-            <div id="student_school_summary">
-                <label>Associated School </label>
-                <div><label> Id </label> @student.school.school_id</div>
-                <div><label>Name </label> @student.school.school_name</div>
-                <a class="btn btn-primary" href="@routes.SchoolsController.findById(student.school.school_id)" role="button">School</a>
-            </div>
-            <div id="student_address">
-                <label>Student Address</label>
+            <div id="guardian_address">
+                <label>guardian Address</label>
                 <address>
-                    @student.address.first_line.getOrElse("") ,
-                    @student.address.second_line.getOrElse("") ,
-                    @student.address.city.getOrElse("") ,
-                    @student.address.county.getOrElse("") ,
-                    @student.address.country ,
-                    @student.address.zip_code
+                    @guardian.address.first_line.getOrElse("") ,
+                    @guardian.address.second_line.getOrElse("") ,
+                    @guardian.address.city.getOrElse("") ,
+                    @guardian.address.county.getOrElse("") ,
+                    @guardian.address.country ,
+                    @guardian.address.zip_code
                 </address>
             </div>
 
-            <div id="student_detail_other">
+            <div id="guardian_detail_other">
                 <div>
-                    <label>Gender</label> @student.gender
+                    <label>Gender</label> @guardian.gender
                 </div>
                 <div>
-                    <label>Date of Birth</label> @DateUtility.fommattedDate(student.dob)
+                    <label>E-Mail</label> @guardian.email.getOrElse(Messages("schools.guardians.detail.email.nodata"))
                 </div>
                 <div>
-                    <label>E-Mail</label> @student.email.getOrElse(Messages("schools.students.detail.email.nodata"))
-                </div>
-                <div>
-                    <label>Ethnicity</label> @student.ethnicity.getOrElse(Messages("schools.students.detail.ethnicity.nodata"))
-                </div>
-                <div>
-                    <label>Special Education Needs Code</label> @student.sen_code.getOrElse(Messages("schools.students.detail.sen_code.nodata"))
-                </div>
-                <div>
-                    <label>Status</label> @student.status
+                    <label>National Insurance NUmber</label> @guardian.national_insurance_number.getOrElse(Messages("schools.guardians.detail.national_insurance_number.nodata"))
                 </div>
             </div>
 
-            <div id="student_permitted_actions">
-                <a class="btn btn-warning" href="#" role="button">Edit</a>
-                <a class="btn btn-primary" href="#" role="button">Time Sheets</a>
-                <a class="btn btn-primary" href="#" role="button">Rates</a>
-                <a class="btn btn-primary" href="#" role="button">Rebates</a>
-                <a class="btn btn-primary" href="#" role="button">Parents</a>
+            <div id="guardian_permitted_actions">
+                <div id="guardian_permitted_actions_view">
+                    <a class="btn btn-primary" href="@routes.GuardiansController.findAllStudentsByGuardian(guardian.guardian_id)" role="button">Students</a>
+                    <a class="btn btn-primary" href="@routes.GuardiansController.findAllSchoolByGuardian(guardian.guardian_id)" role="button">Schools</a>
+                    <a class="btn btn-default" href="#" role="button">Charges</a>
+                    <a class="btn btn-default" href="#" role="button">Rebates</a>
+                </div>
+                <div id="guardian_permitted_actions_update">
+                    <a class="btn btn-warning" href="#" role="button">Edit</a>
+                </div>
             </div>
         </div>
     }
     case None => {
-        <div>@Messages("schools.students.detail.nodata")</div>
+        <div>@Messages("schools.guardians.detail.nodata")</div>
     }
 
 }

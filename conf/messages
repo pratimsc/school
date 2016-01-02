@@ -1,0 +1,36 @@
+#
+# Copyright [2016] Maikalal Development Team
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+schools.list.nodata=No schools are registered. Please use the available options to register new school.
+schools.detail.nodata=The requested school does not exist.
+schools.students.list.nodata=No students are registered. Please use the available options to register new students.
+schools.guardians.list.nodata=No guardians are registered. Please use the available options to register new guardians.
+
+schools.guardians.detail.nodata=The requested guardian does not exist.
+schools.guardians.detail.email.nodata=Email not registered for guardian.
+schools.guardians.detail.national_insurance_number.nodata=National insurance number not registered for guardian.
+
+schools.students.detail.nodata=The requested student does not exist.
+schools.students.detail.email.nodata=Email not registered for student.
+schools.students.detail.ethnicity.nodata=Ethnicity not registered for student.
+schools.students.detail.sen_code.nodata=Special education need code not registered for student.
+schools.students.detail.applied.rates.nodata=No charges/rebates has been applied to student
+schools.students.detail.applied.rates.until.infinity=Never
+schools.students.detail.applied.rates.count.none=None
+
+rates.list.nodata=No rates are registered Please use the available options for registering a rate.
+rates.detail.nodata=The requested rate does not exist.
+

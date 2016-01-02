@@ -1,8 +1,8 @@
-@(gl:List[Guardian],student:Student)(implicit messages: Messages)
+@(gl: List[Guardian], student: Option[Student])(implicit messages: Messages)
 
 @views.html.common.nuggets.head("Student Guardian List View")
 
-@views.html.students.nuggets.detailStudent(Some(student))
+    @views.html.students.nuggets.detailStudent(student)
 
 @views.html.guardians.nuggets.listGuardians(gl)
 

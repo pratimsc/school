@@ -1,9 +1,11 @@
-@(gl:List[Guardian],student:Student)(implicit messages: Messages)
+@import models.common.RateAppliedToStudent
 
-@views.html.common.nuggets.head("Student Guardian List View")
+@(rl: List[RateAppliedToStudent], student: Option[Student])(implicit messages: Messages)
 
-@views.html.students.nuggets.detailStudent(Some(student))
+@views.html.common.nuggets.head("Student Rate List View")
 
-@views.html.guardians.nuggets.listGuardians(gl)
+@views.html.students.nuggets.detailStudent(student)
+
+@views.html.rates.nuggets.listRatesAppliedToStudent(rl)
 
 @views.html.common.nuggets.body_scripts()

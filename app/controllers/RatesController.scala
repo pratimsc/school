@@ -1,12 +1,49 @@
+/*
+ * Copyright [2016] Maikalal Development Team
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package controllers
 
-import com.sun.xml.internal.bind.v2.TODO
-import play.api.mvc.Controller
+import javax.inject.Inject
+
+import models.common.RateHelper
+import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.mvc.{Action, Controller}
 
 /**
   * Created by pratimsc on 28/12/15.
   */
-object RatesController extends Controller {
+class RatesController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
+
+
+  def findRateById(rate_id: Long) = Action { implicit request =>
+    val rate = RateHelper.findRateById(rate_id)
+    Ok(views.html.rates.RateDetailView(rate))
+  }
+
+  def findAllSchoolsByRate(rate_id: Long) = Action { implicit request =>
+    val schools = RateHelper.findAllSchoolsByRate(rate_id)
+    val rate = RateHelper.findRateById(rate_id)
+    Ok(views.html.rates.RateSchoolListView(schools, rate))
+  }
+
+  def findAllStudentsByRate(rate_id: Long) = Action { implicit request =>
+    val students = RateHelper.findAllStudentsByRate(rate_id)
+    val rate = RateHelper.findRateById(rate_id)
+    Ok(views.html.rates.RateStudentListView(students, rate))
+  }
 
   def addRate(school: Long) = TODO
 

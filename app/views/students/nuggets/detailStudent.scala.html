@@ -1,10 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+@import org.maikalal.common.util.DateUtility
 
-</body>
-</html>
+@(st: Option[Student])(implicit messages: Messages)
+
+@st match {
+    case Some(student) => {
+        <div id="student_detail">
+            <div>
+                <p>
+                    <label>Student Id </label> @student.student_id
+                </p>
+            </div>
+            <div id="student_name">
+                <p><label>First Name</label> @student.name.first</p>
+                <p><label>Last Name</label> @student.name.last</p>
+                <p><label> Middle Name</label> @student.name.middle</p>
+            </div>
+
+            <div id="student_school_summary">
+                <label>Associated School </label>
+                <div><label> Id </label> @student.school.school_id</div>
+                <div><label>Name </label> @student.school.school_name</div>
+                <a class="btn btn-primary" href="@routes.SchoolsController.findById(student.school.school_id)" role="button">School</a>
+            </div>
+            <div id="student_address">
+                <label>Student Address</label>
+                <address>
+                    @student.address.first_line.getOrElse("") ,
+                    @student.address.second_line.getOrElse("") ,
+                    @student.address.city.getOrElse("") ,
+                    @student.address.county.getOrElse("") ,
+                    @student.address.country ,
+                    @student.address.zip_code
+                </address>
+            </div>
+
+            <div id="student_detail_other">
+                <div>
+                    <label>Gender</label> @student.gender
+                </div>
+                <div>
+                    <label>Date of Birth</label> @DateUtility.fommattedDate(student.dob)
+                </div>
+                <div>
+                    <label>E-Mail</label> @student.email.getOrElse(Messages("schools.students.detail.email.nodata"))
+                </div>
+                <div>
+                    <label>Ethnicity</label> @student.ethnicity.getOrElse(Messages("schools.students.detail.ethnicity.nodata"))
+                </div>
+                <div>
+                    <label>Special Education Needs Code</label> @student.sen_code.getOrElse(Messages("schools.students.detail.sen_code.nodata"))
+                </div>
+                <div>
+                    <label>Status</label> @student.status
+                </div>
+            </div>
+
+            <div id="student_permitted_actions">
+                <div id="student_permitted_actions_view">
+                    <a class="btn btn-primary" href="@routes.StudentsController.findAllGuardiansByStudent(student.student_id, student.school.school_id)" role="button">Guardians</a>
+                    <a class="btn btn-primary" href="@routes.StudentsController.findAllAppliedRates(student.student_id, student.school.school_id)" role="button">Charges/Rebates</a>
+                    <a class="btn btn-default" href="#" role="button">Time Sheets</a>
+                </div>
+                <div id="student_permitted_actions_update">
+                    <a class="btn btn-warning" href="#" role="button">Edit</a>
+                </div>
+                <div id="student_permitted_actions_add">
+                    <a class="btn btn-default" href="#" role="button">Add Guardian</a>
+                    <a class="btn btn-default" href="#" role="button">Add Time Sheets</a>
+                    <a class="btn btn-default" href="#" role="button">Apply Rates</a>
+                    <a class="btn btn-default" href="#" role="button">Apply Rebates</a>
+                </div>
+            </div>
+        </div>
+    }
+    case None => {
+        <div>@Messages("schools.students.detail.nodata")</div>
+    }
+
+}

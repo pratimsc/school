@@ -1,29 +1,36 @@
-@(schools: List[School])(implicit messages: Messages)
+@import models.common.Rate
+
+@(rates: List[Rate])(implicit messages: Messages)
 
 
 <div id="school_list" class="school_list">
 
-    @schools match {
+    @rates match {
         case h :: t => {
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
-                        <td>School Id</td>
-                        <td>School Name</td>
-                        <td>Actions</td>
-
+                        <th>Id</th>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                @schools.map { school =>
+                @rates.map { rate =>
                     <tr>
-                        <td> @school.school_id </td>
-                        <td> @school.school_name </td>
+                        <td> @rate.rate_id </td>
+                        <td> @rate.code </td>
+                        <td>@rate.description</td>
+                        <td>@rate.chargeOrRebate</td>
+                        <td>@rate.status</td>
 
                         <td>
-                            <a class="btn btn-success" href="@routes.SchoolsController.findById(school.school_id)" role="button">
+                            <a class="btn btn-success" href="@routes.RatesController.findRateById(rate.rate_id)" role="button">
                                 View Details</a>
-                            <a class="btn btn-warning" href="@routes.SchoolsController.findById(school.school_id)" role="button">
+                            <a class="btn btn-warning" href="@routes.RatesController.findRateById(rate.rate_id)" role="button">
                                 Edit</a>
                         </td>
                     </tr>
@@ -32,7 +39,7 @@
             </table>
         }
         case Nil => {
-            <div> @Messages("schools.list.nodata")</div>
+            <div> @Messages("rates.list.nodata")</div>
         }
     }
 </div>

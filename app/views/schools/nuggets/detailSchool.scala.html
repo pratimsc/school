@@ -1,41 +1,47 @@
 @(sc: Option[School])(implicit messages: Messages)
 
-@main("School Detail ") {
-    @sc match {
-        case Some(school) => {
-            <div id="school_detail">
-                <p><label>School Id :</label> @school.school_id</p>
-                <p><label>School Name: </label> @school.school_name</p>
-                <p>
-                    <label>School Address:</label>
-            <address>
-                @school.school_address.first_line.getOrElse() ,
-                @school.school_address.second_line.getOrElse() ,
-                @school.school_address.city.getOrElse() ,
-                @school.school_address.county.getOrElse() ,
-                @school.school_address.country ,
-                @school.school_address.zip_code
-            </address>
-
-                </p>
-
-
-                <div>
-                    <a class="btn btn-danger" href="#" role="button">Delete</a>
+@sc match {
+    case Some(school) => {
+        <div id="school_detail">
+            <p><label>School Id </label> @school.school_id</p>
+            <p><label>School Name </label> @school.school_name</p>
+            <p>
+                <label>School Address</label>
+        <address>
+            @school.school_address.first_line.getOrElse("") ,
+            @school.school_address.second_line.getOrElse("") ,
+            @school.school_address.city.getOrElse("") ,
+            @school.school_address.county.getOrElse("") ,
+            @school.school_address.country ,
+            @school.school_address.zip_code
+        </address>
+            </p>
+            <div id="school_permitted_actions">
+                <div id="school_permitted_actions_view">
+                    <a class="btn btn-primary" href="@routes.SchoolsController.findAllStudentsBySchool(school.school_id)" role="button">Students</a>
+                    <a class="btn btn-primary" href="@routes.SchoolsController.findAllGuardiansBySchool(school.school_id)" role="button">Guardians</a>
+                    <a class="btn btn-primary" href="@routes.SchoolsController.findAllRatesBySchool(school.school_id)" role="button">Charges/Rebates</a>
+                    <a class="btn btn-default" href="#" role="button">Terms</a>
+                    <a class="btn btn-default" href="#" role="button">Holidays</a>
+                    <a class="btn btn-default" href="#" role="button">Time Sheets</a>
+                    <a class="btn btn-default" href="#" role="button">Staffs/Admins</a>
+                </div>
+                <div id="school_permitted_actions_update">
                     <a class="btn btn-warning" href="#" role="button">Edit</a>
-                    <a class="btn btn-primary" href="@routes.StudentsController.findAll(school.school_id)" role="button">Students</a>
-                    <a class="btn btn-primary" href="#" role="button">Teachers</a>
-                    <a class="btn btn-primary" href="#" role="button">Terms</a>
-                    <a class="btn btn-primary" href="#" role="button">Holidays</a>
-                    <a class="btn btn-primary" href="#" role="button">Students</a>
-                    <a class="btn btn-primary" href="#" role="button">Attendance</a>
-                    <a class="btn btn-primary" href="#" role="button">Rates</a>
-                    <a class="btn btn-primary" href="#" role="button">Rebates</a>
+                </div>
+                <div id="school_permitted_actions_add">
+                    <a class="btn btn-default" href="#" role="button">Add Students</a>
+                    <a class="btn btn-default" href="#" role="button">Add Guardian</a>
+                    <a class="btn btn-default" href="#" role="button">Add Terms</a>
+                    <a class="btn btn-default" href="#" role="button">Add Holidays</a>
+                    <a class="btn btn-default" href="#" role="button">Add Staffs</a>
+                    <a class="btn btn-default" href="#" role="button">Add Time Sheets</a>
+                    <a class="btn btn-default" href="#" role="button">Add Charges/Rebates</a>
                 </div>
             </div>
-        }
-        case None => {
-            <div> @Messages("school.nodata")</div>
-        }
+        </div>
+    }
+    case None => {
+        <div> @Messages("schools.detail.nodata")</div>
     }
 }

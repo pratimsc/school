@@ -1,81 +1,87 @@
-@import org.maikalal.common.util.DateUtility
+@import models.common.{BandedRate, FlatRate, Rate}
 
-@(st: Option[Student])(implicit messages: Messages)
+@(rt: Option[Rate])(implicit messages: Messages)
 
-@st match {
-    case Some(student) => {
-        <div id="student_detail">
+    @rt match {
+        case Some(rate) => {
+            <div id="rate_detail">
+                <div >
+                    <label>Rate Id </label> @rate.rate_id
+                </div>
             <div>
-                <p>
-                    <label>Student Id </label> @student.student_id
-                </p>
+                <label>Rate Code</label> @rate.code
             </div>
-            <div id="student_name">
-                <p><label>First Name</label> @student.name.first</p>
-                <p><label>Last Name</label> @student.name.last</p>
-                <p><label> Middle Name</label> @student.name.middle</p>
+                <div>
+                    <label>Rate Description</label> @rate.description
             </div>
 
-            <div id="student_school_summary">
-                <label>Associated School </label>
-                <div><label> Id </label> @student.school.school_id</div>
-                <div><label>Name </label> @student.school.school_name</div>
-                <a class="btn btn-primary" href="@routes.SchoolsController.findById(student.school.school_id)" role="button">School</a>
-            </div>
-            <div id="student_address">
-                <label>Student Address</label>
-                <address>
-                    @student.address.first_line.getOrElse("") ,
-                    @student.address.second_line.getOrElse("") ,
-                    @student.address.city.getOrElse("") ,
-                    @student.address.county.getOrElse("") ,
-                    @student.address.country ,
-                    @student.address.zip_code
-                </address>
+                <div id="rate_pricing">
+                    @if(rate.isInstanceOf[FlatRate] == true) {
+                        <div id="flat_rate">
+                            <label>Value</label> @rate.asInstanceOf[FlatRate].price
+                        </div>
+                    }
+                    @if(rate.isInstanceOf[BandedRate] == true) {
+                        <div id="banded_rate">
+                            <label>Banded Rate</label>
+                            <table class="table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Lower Limit</th>
+                                        <th>Upper Limit</th>
+                                        <th>Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @rate.asInstanceOf[BandedRate].bands.map{b =>
+                                    <tr>
+                                        <td>@b.lower_limit match {
+                                            case Some(h) => {
+                                                @h.getHours
+                                            }
+                                            case None => {
+                                                None
+                                            }
+                                        }
+                                        </td>
+                                        <td>@b.upper_limit match {
+                                            case Some(h) => {
+                                                @h.getHours
+                                            }
+                                            case None => {
+                                                None
+                                            }
+                                        }</td>
+                                        <td>@b.rate</td>
+                                    </tr>
+
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
             </div>
 
-            <div id="student_detail_other">
                 <div>
-                    <label>Gender</label> @student.gender
-                </div>
-                <div>
-                    <label>Date of Birth</label> @DateUtility.fommattedDate(student.dob)
-                </div>
-                <div>
-                    <label>E-Mail</label> @student.email.getOrElse(Messages("schools.students.detail.email.nodata"))
-                </div>
-                <div>
-                    <label>Ethnicity</label> @student.ethnicity.getOrElse(Messages("schools.students.detail.ethnicity.nodata"))
-                </div>
-                <div>
-                    <label>Special Education Needs Code</label> @student.sen_code.getOrElse(Messages("schools.students.detail.sen_code.nodata"))
-                </div>
-                <div>
-                    <label>Status</label> @student.status
-                </div>
+                    <label>Type</label> @rate.chargeOrRebate
             </div>
-
-            <div id="student_permitted_actions">
-                <div id="student_permitted_actions_view">
-                    <a class="btn btn-primary" href="@routes.StudentsController.findAllGuardiansByStudent(student.student_id, student.school.school_id)" role="button">Guardians</a>
-                    <a class="btn btn-default" href="#" role="button">Time Sheets</a>
-                    <a class="btn btn-default" href="#" role="button">Charges</a>
-                    <a class="btn btn-default" href="#" role="button">Rebates</a>
+                <div>
+                    <label>Status</label> @rate.status
                 </div>
-                <div id="student_permitted_actions_update">
+
+                <div id="rate_permitted_actions">
+                    <div id="rate_permitted_actions_view">
+                        <a class="btn btn-primary" href="@routes.RatesController.findAllStudentsByRate(rate.rate_id)" role="button">Students</a>
+                        <a class="btn btn-primary" href="@routes.RatesController.findAllSchoolsByRate(rate.rate_id)" role="button">Schools</a>
+                </div>
+                    <div id="rate_permitted_actions_update">
                     <a class="btn btn-warning" href="#" role="button">Edit</a>
-                </div>
-                <div id="student_permitted_actions_add">
-                    <a class="btn btn-default" href="#" role="button">Add Guardian</a>
-                    <a class="btn btn-default" href="#" role="button">Add Time Sheets</a>
-                    <a class="btn btn-default" href="#" role="button">Apply Rates</a>
-                    <a class="btn btn-default" href="#" role="button">Apply Rebates</a>
                 </div>
             </div>
         </div>
     }
     case None => {
-        <div>@Messages("schools.students.detail.nodata")</div>
+        <div>@Messages("rates.detail.nodata")</div>
     }
 
 }

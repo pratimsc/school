@@ -1,9 +1,9 @@
-@(sl: List[Student], guardian: Guardian)(implicit messages: Messages)
+@(sl: List[School], guardian: Option[Guardian])(implicit messages: Messages)
 
 @views.html.common.nuggets.head("School Student List View")
 
-@views.html.guardians.nuggets.detailGuardian(Some(guardian))
+@views.html.guardians.nuggets.detailGuardian(guardian)
 
-@students.nuggets.listStudents(sl)
+@views.html.schools.nuggets.listSchool(sl)
 
 @views.html.common.nuggets.body_scripts()

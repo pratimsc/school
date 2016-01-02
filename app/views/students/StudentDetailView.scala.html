@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+@(student: Option[Student])(implicit messages: Messages)
 
-</body>
-</html>
+    @views.html.common.nuggets.head("Student Detail View")
+
+    @views.html.students.nuggets.detailStudent(student)
+
+    @views.html.common.nuggets.body_scripts()

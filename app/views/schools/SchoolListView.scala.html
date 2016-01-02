@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+@(sl: List[School])(implicit messages: Messages)
 
-</body>
-</html>
+    @views.html.common.nuggets.head("School List")
+
+    @views.html.schools.nuggets.listSchool(sl)
+
+    @views.html.common.nuggets.body_scripts()
