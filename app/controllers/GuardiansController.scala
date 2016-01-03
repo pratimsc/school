@@ -48,4 +48,8 @@ class GuardiansController @Inject()(val messagesApi: MessagesApi) extends Contro
     val guardian = GuardianHelper.findById(guardian_id)
     Ok(views.html.guardians.GuardianSchoolListView(schools, guardian))
   }
+
+  def updateGuardian(guardian_id: Long) = Action { implicit request =>
+    Ok("")
+  }
 }

@@ -16,7 +16,9 @@
 
 package models
 
-import models.common.{Address, AddressHelper, Name}
+import models.common.{Address, AddressHelper, AddressRegistrationData, Name}
+import play.api.data.Form
+import play.api.data.Forms._
 
 /**
   * Created by pratimsc on 31/12/15.
@@ -25,7 +27,35 @@ case class Guardian(guardian_id: Long, name: Name, address: Address, gender: Str
 
 case class GuardianStudentRelationShip(student: Student, relationship: String)
 
+case class GuardianRegistrationData(name: Name, address: AddressRegistrationData, gender: String, student_relationship: String, email: Option[String], national_insurance_number: Option[String])
+
+case class GuardianStudentRelationShipRegistrationData(school_id: Long, student_id: Long, guardian_id: Long, relationship: String)
+
 object GuardianHelper {
+
+  val nameMapping = mapping(
+    "first" -> nonEmptyText(maxLength = Char.MaxValue),
+    "middle" -> optional(text(maxLength = Char.MaxValue)),
+    "last" -> nonEmptyText(maxLength = Char.MaxValue)
+  )(Name.apply)(Name.unapply)
+
+  val guardianFormMapping = mapping(
+    "guardian_name" -> nameMapping,
+    "guardian_address" -> AddressHelper.addressFormMapping,
+    "gender" -> nonEmptyText(minLength = 1, maxLength = 1),
+    "student_relationship" -> text,
+    "email" -> optional(text),
+    "national_insurance" -> optional(text(minLength = 8, maxLength = 8))
+  )(GuardianRegistrationData.apply)(GuardianRegistrationData.unapply)
+
+  val guardianStudentRelationshipFormMapping = mapping(
+    "school_id" -> longNumber,
+    "student_id" -> longNumber,
+    "guardian_id" -> longNumber,
+    "student_relationship" -> text
+  )(GuardianStudentRelationShipRegistrationData.apply)(GuardianStudentRelationShipRegistrationData.unapply)
+
+  val registerGuardianForm = Form(guardianFormMapping)
 
   /*
    * A non persistence storage for Schools
@@ -60,6 +90,26 @@ object GuardianHelper {
     case None => None
   }
 
-  def addGuardian(s: StudentRegistrationData): Option[Student] = ???
+  //guardian_id: Long, name: Name, address: Address, gender: String, email: Option[String], national_insurance_number: Option[String], students: List[GuardianStudentRelationShip]
+
+  def addGuardian(g: GuardianRegistrationData, student_id: Long, school_id: Long): Guardian = {
+    val address = AddressHelper.addAddress(g.address)
+    val student = StudentHelper.findById(student_id, school_id).get
+    val guardian = guardianList.toList match {
+      case Nil => Guardian(1, g.name, address, g.gender, g.email, g.national_insurance_number, List(GuardianStudentRelationShip(student, g.student_relationship)))
+      case _ => Guardian(guardianList.last.guardian_id + 1, g.name, address, g.gender, g.email, g.national_insurance_number, List(GuardianStudentRelationShip(student, g.student_relationship)))
+    }
+    guardianList += guardian
+    guardian
+  }
+
+  def updateGuardianStudentRelationship(gsr: GuardianStudentRelationShipRegistrationData): Guardian = {
+    val student = StudentHelper.findById(gsr.student_id, gsr.school_id).get
+    val guardian = findById(gsr.guardian_id).get
+    val students = GuardianStudentRelationShip(student, gsr.relationship) :: guardian.students
+    val new_guardian = guardian.copy(students = students)
+    guardianList.dropWhile(_.guardian_id == new_guardian.guardian_id) += new_guardian
+    new_guardian
+  }
 
 }

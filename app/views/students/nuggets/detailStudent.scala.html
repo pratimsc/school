@@ -11,16 +11,14 @@
                 </p>
             </div>
             <div id="student_name">
-                <p><label>First Name</label> @student.name.first</p>
-                <p><label>Last Name</label> @student.name.last</p>
-                <p><label> Middle Name</label> @student.name.middle</p>
+                <label>First Name</label> @student.name.first
+                <label>Last Name</label> @student.name.last
+                <label> Middle Name</label> @student.name.middle
             </div>
 
             <div id="student_school_summary">
-                <label>Associated School </label>
-                <div><label> Id </label> @student.school.school_id</div>
-                <div><label>Name </label> @student.school.school_name</div>
-                <a class="btn btn-primary" href="@routes.SchoolsController.findById(student.school.school_id)" role="button">School</a>
+                <label>Associated School </label> @student.school.school_name
+                <a class="btn btn-primary" href="@routes.SchoolsController.findById(student.school.school_id)" role="button">View School</a>
             </div>
             <div id="student_address">
                 <label>Student Address</label>
@@ -59,13 +57,13 @@
                 <div id="student_permitted_actions_view">
                     <a class="btn btn-primary" href="@routes.StudentsController.findAllGuardiansByStudent(student.student_id, student.school.school_id)" role="button">Guardians</a>
                     <a class="btn btn-primary" href="@routes.StudentsController.findAllAppliedRates(student.student_id, student.school.school_id)" role="button">Charges/Rebates</a>
-                    <a class="btn btn-default" href="#" role="button">Time Sheets</a>
+                    <a class="btn btn-primary" href="@routes.StudentsController.findAllTimesheetsByStudentAndSchool(student.student_id, student.school.school_id)" role="button">Time Sheets</a>
                 </div>
                 <div id="student_permitted_actions_update">
                     <a class="btn btn-warning" href="#" role="button">Edit</a>
                 </div>
                 <div id="student_permitted_actions_add">
-                    <a class="btn btn-default" href="#" role="button">Add Guardian</a>
+                    <a class="btn btn-primary" href="@routes.StudentsController.registerGuardian(student.student_id, student.school.school_id)" role="button">Add Guardian</a>
                     <a class="btn btn-default" href="#" role="button">Add Time Sheets</a>
                     <a class="btn btn-default" href="#" role="button">Apply Rates</a>
                     <a class="btn btn-default" href="#" role="button">Apply Rebates</a>

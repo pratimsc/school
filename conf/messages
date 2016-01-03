@@ -30,6 +30,10 @@ schools.students.detail.sen_code.nodata=Special education need code not register
 schools.students.detail.applied.rates.nodata=No charges/rebates has been applied to student
 schools.students.detail.applied.rates.until.infinity=Never
 schools.students.detail.applied.rates.count.none=None
+schools.students.guardian.add.gender.error=Select gender
+schools.students.guardian.add.relationship.error=Select relationship
+
+schools.students.detail.timesheet.weekly.nodata=No weekly timesheets created
 
 rates.list.nodata=No rates are registered Please use the available options for registering a rate.
 rates.detail.nodata=The requested rate does not exist.
