@@ -1,0 +1,72 @@
+@import helper._
+@import models.common.reference.Reference
+
+@(addStudentForm: Form[StudentRegistrationData], school_id: Long)(implicit messages: Messages)
+
+@views.html.common.nuggets.head("Register Student")
+
+    "student_name" -> NameHelper.nameMapping,
+    "gender" -> text(minLength = 1, maxLength = 1),
+    "student_address" -> AddressHelper.addressFormMapping,
+    "date_of_birth" -> jodaDate("YYYY-MM-dd"),
+    "email" -> optional(email),
+    "ethnicity" -> optional(text),
+    "sen_code" -> optional(text)
+
+<div id="register_school_student">
+@form(action = routes.SchoolsController.addStudent(school_id), 'class -> "form-horizontal") {
+
+    <div class="form-group">
+        @inputText(addStudentForm("student_name.first"), '_label -> "First Name", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
+        @inputText(addStudentForm("student_name.last"), '_label -> "Last Name", 'required -> "required", 'tabindex -> "2", 'class -> "form-control", '_showConstraints -> false)
+        @inputText(addStudentForm("student_name.middle"), '_label -> "Middle Name", 'tabindex -> "3", 'class -> "form-control", 'class -> "form-control", '_showConstraints -> false)
+    </div>
+
+    <div class="form-group">
+    @inputRadioGroup(addStudentForm("gender"),
+        options = Reference.genderList,
+        '_label -> "Gender", 'required -> "required", 'tabindex -> "3", '_showConstraints -> false,
+        '_error -> addStudentForm("gender").error.map(_.withMessage(Messages("schools.students.add.gender.error"))))
+    </div>
+
+    <div class="form-group">
+    @inputDate(addStudentForm("date_of_birth"),
+        '_label -> "Relationship", 'required -> "required", 'size -> 10, 'tabindex -> "4", '_showConstraints -> false)
+    </div>
+
+    <div class="form-group">
+    @inputText(addStudentForm("email"), 'label -> "EMail", '_type -> "email", 'tabindex -> "5", 'class -> "form-control", '_showConstraints -> false)
+    </div>
+
+    <div class="form-group">
+    @select(addStudentForm("ethnicity"),
+        options = Reference.ethnicityList,
+        '_label -> "Ethnicity", 'tabindex -> "6", '_showConstraints -> false,
+        '_error -> addStudentForm("ethnicity").error.map(_.withMessage(Messages("schools.students.add.ethnicity.error"))))
+    </div>
+
+    <div class="form-group">
+    @select(addStudentForm("sen_code"),
+        options = Reference.specialEducationNeedCodeList,
+        '_label -> "SEN Code", 'tabindex -> "7", '_showConstraints -> false,
+        '_error -> addStudentForm("sen_code").error.map(_.withMessage(Messages("schools.students.add.sen_code.error"))))
+    </div>
+
+    <div class="form-group">
+        <label> Guardian Address</label>
+        @inputText(addStudentForm("student_address.first_line"), '_label -> "Line 1", 'tabindex -> "8", '_showConstraints -> false)
+        @inputText(addStudentForm("student_address.second_line"), '_label -> "Line 2", 'tabindex -> "9", '_showConstraints -> false)
+        @inputText(addStudentForm("student_address.city"), '_label -> "City/Village", 'tabindex -> "0", '_showConstraints -> false)
+        @inputText(addStudentForm("student_address.county"), '_label -> "County", 'tabindex -> "11", '_showConstraints -> false)
+        @inputText(addStudentForm("student_address.country"), '_label -> "Country", 'tabindex -> "12", 'required -> "required", '_showConstraints -> false)
+        @inputText(addStudentForm("student_address.zip_code"), '_label -> "Pin/Zip Code", 'tabindex -> "13", 'required -> "required", '_showConstraints -> false)
+    </div>
+
+    <a class="btn btn-primary" href="@routes.SchoolsController.findById(school_id)" role="button">
+        Back/Cancel</a>
+    <input class="btn btn-success" type="submit" value="Register Student" type="button">
+    }
+</div>
+
+
+@views.html.common.nuggets.body_scripts()

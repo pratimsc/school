@@ -16,7 +16,19 @@
 
 package models.common
 
+import play.api.data.Forms._
+
 /**
   * Created by pratimsc on 30/12/15.
   */
 case class Name(first: String, middle: Option[String], last: String)
+
+object NameHelper {
+
+  val nameMapping = mapping(
+    "first" -> nonEmptyText(maxLength = Char.MaxValue),
+    "middle" -> optional(text(maxLength = Char.MaxValue)),
+    "last" -> nonEmptyText(maxLength = Char.MaxValue)
+  )(Name.apply)(Name.unapply)
+
+}

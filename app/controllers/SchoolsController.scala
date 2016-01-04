@@ -59,8 +59,17 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
     * Displays a form for registering school
     * @return
     */
-  def registerSchool = Action {
+  def registerSchool = Action { implicit request =>
     Ok(views.html.schools.AddSchool(SchoolHelper.registerSchoolForm))
+  }
+
+  /**
+    *
+    * @param school_id
+    * @return
+    */
+  def registerStudent(school_id: Long) = Action { implicit request =>
+    Ok(views.html.schools.AddSchoolStudent(StudentHelper.registerStudentForm, school_id))
   }
 
   /**
@@ -73,11 +82,27 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
         //Binding failure. Retrieve the form containing error
         BadRequest(views.html.schools.AddSchool(formWithErrors))
       ,
-      schoolData => {
+      schoolRegistrationData => {
         //Binding is successful. Got the actual value.
-        val school = models.SchoolHelper.addSchool(schoolData)
+        val school = models.SchoolHelper.addSchool(schoolRegistrationData)
         Redirect(routes.SchoolsController.findAll())
       }
     )
   }
+
+  /**
+    * After the form for registering a student is submitted, the student is registered with the school.
+    * @param school_id
+    * @return
+    */
+  def addStudent(school_id: Long) = Action { implicit request =>
+    StudentHelper.registerStudentForm.bindFromRequest().fold(
+      formsWithError => BadRequest(views.html.schools.AddSchoolStudent(formsWithError, school_id)),
+      studentRegistrationData => {
+        val student = models.StudentHelper.addStudent(studentRegistrationData, school_id)
+        Redirect(routes.SchoolsController.findById(school_id))
+      }
+    )
+  }
+
 }

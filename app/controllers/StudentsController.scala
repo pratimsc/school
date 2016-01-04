@@ -69,10 +69,8 @@ class StudentsController @Inject()(val messagesApi: MessagesApi) extends Control
         Redirect(routes.StudentsController.findAllGuardiansByStudent(student_id, school_id))
       }
     )
-    Ok("")
   }
 
-  def addStudent(school: Long) = TODO
 
   def addRate(student: Long, school: Long) = TODO
 

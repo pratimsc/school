@@ -16,15 +16,29 @@
 
 package models
 
-import models.common.{Address, AddressHelper, AddressRegistrationData, Name}
+import models.common._
 import org.joda.time.DateTime
+import play.api.data.Form
+import play.api.data.Forms._
 
 
 case class Student(student_id: Long, school: School, name: Name, status: String, gender: String, address: Address, dob: DateTime, email: Option[String], ethnicity: Option[String], sen_code: Option[String])
 
-case class StudentRegistrationData(school_id: Long, name: Name, status: String, gender: String, address: AddressRegistrationData, dob: DateTime, email: Option[String], ethnicity: Option[String], sen_code: Option[String])
+case class StudentRegistrationData(name: Name, gender: String, address: AddressRegistrationData, dob: DateTime, email: Option[String], ethnicity: Option[String], sen_code: Option[String])
 
 object StudentHelper {
+
+  val studentFormMapping = mapping(
+    "student_name" -> NameHelper.nameMapping,
+    "gender" -> text(minLength = 1, maxLength = 1),
+    "student_address" -> AddressHelper.addressFormMapping,
+    "date_of_birth" -> jodaDate("yyyy-MM-dd"),
+    "email" -> optional(email),
+    "ethnicity" -> optional(text),
+    "sen_code" -> optional(text)
+  )(StudentRegistrationData.apply)(StudentRegistrationData.unapply)
+
+  val registerStudentForm = Form(studentFormMapping)
 
   /*
    * A non persistence storage for Schools
@@ -52,11 +66,11 @@ object StudentHelper {
     case None => Nil
   }
 
-  def addStudent(s: StudentRegistrationData): Option[Student] = SchoolHelper.findById(s.school_id) match {
+  def addStudent(s: StudentRegistrationData, school_id: Long): Option[Student] = SchoolHelper.findById(school_id) match {
     case None => None
     case Some(school) =>
       val address = AddressHelper.addAddress(s.address)
-      val student = Student(studentList.last.student_id + 1, school, s.name, s.status, s.gender, address, s.dob, s.email, s.ethnicity, s.sen_code)
+      val student = Student(studentList.last.student_id + 1, school, s.name, "A", s.gender, address, s.dob, s.email, s.ethnicity, s.sen_code)
       studentList += student
       Some(student)
   }

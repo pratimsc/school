@@ -24,7 +24,7 @@ import play.api.data._
   * Created by pratimsc on 28/12/15.
   */
 
-case class School(school_id: Long, school_name: String, school_address: Address)
+case class School(school_id: Long, school_name: String, school_address: Address, status: String)
 
 case class SchoolRegistration(school_name: String, school_address: AddressRegistrationData)
 
@@ -41,14 +41,13 @@ object SchoolHelper {
    * A non persistence storage for Schools
    */
   val schoolList = scala.collection.mutable.MutableList[School](
-    School(1, "Mongo Bongo School", AddressHelper.findById(1).get),
-    School(2, "Tooko Takka School", AddressHelper.findById(2).get)
+    School(1, "Mongo Bongo School", AddressHelper.findById(1).get, "A"),
+    School(2, "Tooko Takka School", AddressHelper.findById(2).get, "A")
   )
 
   def findAll: List[School] = schoolList.toList
 
   def findById(school: Long): Option[School] = schoolList.find(_.school_id == school)
-
 
   def findAllSchoolsByGuardianId(guardian_id: Long) = GuardianHelper.findById(guardian_id) match {
     case Some(guardian) =>
@@ -59,8 +58,8 @@ object SchoolHelper {
   def addSchool(s: SchoolRegistration): School = {
     val address = AddressHelper.addAddress(s.school_address)
     val school = schoolList.toList match {
-      case Nil => School(1, s.school_name, address)
-      case _ => School(schoolList.last.school_id + 1, s.school_name, address)
+      case Nil => School(1, s.school_name, address, "A")
+      case _ => School(schoolList.last.school_id + 1, s.school_name, address, "A")
     }
     schoolList += school
     school

@@ -16,14 +16,14 @@
 
 package models
 
-import models.common.{Address, AddressHelper, AddressRegistrationData, Name}
+import models.common._
 import play.api.data.Form
 import play.api.data.Forms._
 
 /**
   * Created by pratimsc on 31/12/15.
   */
-case class Guardian(guardian_id: Long, name: Name, address: Address, gender: String, email: Option[String], national_insurance_number: Option[String], students: List[GuardianStudentRelationShip])
+case class Guardian(guardian_id: Long, name: Name, address: Address, gender: String, status: String, email: Option[String], national_insurance_number: Option[String], students: List[GuardianStudentRelationShip])
 
 case class GuardianStudentRelationShip(student: Student, relationship: String)
 
@@ -33,18 +33,12 @@ case class GuardianStudentRelationShipRegistrationData(school_id: Long, student_
 
 object GuardianHelper {
 
-  val nameMapping = mapping(
-    "first" -> nonEmptyText(maxLength = Char.MaxValue),
-    "middle" -> optional(text(maxLength = Char.MaxValue)),
-    "last" -> nonEmptyText(maxLength = Char.MaxValue)
-  )(Name.apply)(Name.unapply)
-
   val guardianFormMapping = mapping(
-    "guardian_name" -> nameMapping,
+    "guardian_name" -> NameHelper.nameMapping,
     "guardian_address" -> AddressHelper.addressFormMapping,
     "gender" -> nonEmptyText(minLength = 1, maxLength = 1),
     "student_relationship" -> text,
-    "email" -> optional(text),
+    "email" -> optional(email),
     "national_insurance" -> optional(text(minLength = 8, maxLength = 8))
   )(GuardianRegistrationData.apply)(GuardianRegistrationData.unapply)
 
@@ -61,10 +55,10 @@ object GuardianHelper {
    * A non persistence storage for Schools
    */
   val guardianList = scala.collection.mutable.MutableList[Guardian](
-    Guardian(1, Name("Chocko", Some("Slaughter Man"), "Funny"), AddressHelper.findById(3).get, "M", Some("chocko.funny@blahblah.com"), Some("NI12345781"), List(GuardianStudentRelationShip(StudentHelper.findById(1, 1).get, "Father"), GuardianStudentRelationShip(StudentHelper.findById(3, 2).get, "Father"))),
-    Guardian(2, Name("Lisa", Some("Pussy Cat"), "Angry"), AddressHelper.findById(3).get, "F", Some("lisa.angry@blahblah.com"), Some("NI12345782"), List(GuardianStudentRelationShip(StudentHelper.findById(3, 2).get, "Mother"))),
-    Guardian(3, Name("Mocho", None, "Cobbler"), AddressHelper.findById(3).get, "M", Some("mocho.cobbler@blahblah.com"), Some("NI1234578"), List(GuardianStudentRelationShip(StudentHelper.findById(2, 1).get, "Father"))),
-    Guardian(4, Name("Zhinga", Some("Mohanlal"), "Baghmare"), AddressHelper.findById(3).get, "M", Some("zhinga.bhagmare@blahblah.com"), Some("NI1234578"), List(GuardianStudentRelationShip(StudentHelper.findById(4, 2).get, "Father"), GuardianStudentRelationShip(StudentHelper.findById(5, 2).get, "Grand Father")))
+    Guardian(1, Name("Chocko", Some("Slaughter Man"), "Funny"), AddressHelper.findById(3).get, "M", "A", Some("chocko.funny@blahblah.com"), Some("NI12345781"), List(GuardianStudentRelationShip(StudentHelper.findById(1, 1).get, "Father"), GuardianStudentRelationShip(StudentHelper.findById(3, 2).get, "Father"))),
+    Guardian(2, Name("Lisa", Some("Pussy Cat"), "Angry"), AddressHelper.findById(3).get, "F", "A", Some("lisa.angry@blahblah.com"), Some("NI12345782"), List(GuardianStudentRelationShip(StudentHelper.findById(3, 2).get, "Mother"))),
+    Guardian(3, Name("Mocho", None, "Cobbler"), AddressHelper.findById(3).get, "M", "A", Some("mocho.cobbler@blahblah.com"), Some("NI1234578"), List(GuardianStudentRelationShip(StudentHelper.findById(2, 1).get, "Father"))),
+    Guardian(4, Name("Zhinga", Some("Mohanlal"), "Baghmare"), AddressHelper.findById(3).get, "M", "A", Some("zhinga.bhagmare@blahblah.com"), Some("NI1234578"), List(GuardianStudentRelationShip(StudentHelper.findById(4, 2).get, "Father"), GuardianStudentRelationShip(StudentHelper.findById(5, 2).get, "Grand Father")))
   )
 
   /*
@@ -95,10 +89,7 @@ object GuardianHelper {
   def addGuardian(g: GuardianRegistrationData, student_id: Long, school_id: Long): Guardian = {
     val address = AddressHelper.addAddress(g.address)
     val student = StudentHelper.findById(student_id, school_id).get
-    val guardian = guardianList.toList match {
-      case Nil => Guardian(1, g.name, address, g.gender, g.email, g.national_insurance_number, List(GuardianStudentRelationShip(student, g.student_relationship)))
-      case _ => Guardian(guardianList.last.guardian_id + 1, g.name, address, g.gender, g.email, g.national_insurance_number, List(GuardianStudentRelationShip(student, g.student_relationship)))
-    }
+    val guardian = Guardian(guardianList.last.guardian_id + 1, g.name, address, g.gender, "A", g.email, g.national_insurance_number, List(GuardianStudentRelationShip(student, g.student_relationship)))
     guardianList += guardian
     guardian
   }

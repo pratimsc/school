@@ -22,4 +22,6 @@ package models.common.reference
 object Reference {
   val genderList = Seq("M" -> "Male", "F" -> "Female")
   val guardianStudentRelationshipList = Seq("GSR01" -> "Father", "GSR02" -> "Mother", "GSR03" -> "Grand Father", "GSR04" -> "Grand Mother", "GSR05" -> "Guardian")
+  val ethnicityList = Seq("WBRI" -> "White-British", "AIND" -> "Asian/Asian British-Indian", "CHNE" -> "Chinese", "MWAS" -> "Mixed -White and Asian")
+  val specialEducationNeedCodeList = Seq("N" -> "No special educational need", "EYA" -> "Early years / school action", "EYAP" -> "Early years action / school plus", "S" -> "Statement of SEN")
 }
