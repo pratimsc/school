@@ -5,14 +5,6 @@
 
 @views.html.common.nuggets.head("Register Student")
 
-    "student_name" -> NameHelper.nameMapping,
-    "gender" -> text(minLength = 1, maxLength = 1),
-    "student_address" -> AddressHelper.addressFormMapping,
-    "date_of_birth" -> jodaDate("YYYY-MM-dd"),
-    "email" -> optional(email),
-    "ethnicity" -> optional(text),
-    "sen_code" -> optional(text)
-
 <div id="register_school_student">
 @form(action = routes.SchoolsController.addStudent(school_id), 'class -> "form-horizontal") {
 
@@ -62,7 +54,7 @@
         @inputText(addStudentForm("student_address.zip_code"), '_label -> "Pin/Zip Code", 'tabindex -> "13", 'required -> "required", '_showConstraints -> false)
     </div>
 
-    <a class="btn btn-primary" href="@routes.SchoolsController.findById(school_id)" role="button">
+    <a class="btn btn-primary" href="@routes.SchoolsController.findAllStudentsBySchool(school_id)" role="button">
         Back/Cancel</a>
     <input class="btn btn-success" type="submit" value="Register Student" type="button">
     }

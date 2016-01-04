@@ -100,7 +100,7 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
       formsWithError => BadRequest(views.html.schools.AddSchoolStudent(formsWithError, school_id)),
       studentRegistrationData => {
         val student = models.StudentHelper.addStudent(studentRegistrationData, school_id)
-        Redirect(routes.SchoolsController.findById(school_id))
+        Redirect(routes.SchoolsController.findAllStudentsBySchool(school_id))
       }
     )
   }
