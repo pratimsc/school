@@ -1,0 +1,26 @@
+@import helper._
+@import models.common.TermRegistrationData
+@(termRegistrationForm: Form[TermRegistrationData], school_id: Long)(implicit messages: Messages)
+
+@views.html.common.nuggets.head("Register Term")
+
+<div id="register_school_term">
+@form(action = routes.SchoolsController.addTerm(school_id), 'class -> "form-horizontal") {
+
+    <div class="form-group">
+    @inputDate(termRegistrationForm("begin_date"),
+        '_label -> "Start Date", 'required -> "required", 'size -> 10, 'tabindex -> "1", '_showConstraints -> false)
+    </div>
+
+    <div class="form-group">
+    @inputDate(termRegistrationForm("finish_date"),
+        '_label -> "End Date", 'required -> "required", 'size -> 10, 'tabindex -> "2", '_showConstraints -> false)
+    </div>
+
+    <a class="btn btn-primary" href="@routes.SchoolsController.findAllTermsBySchool(school_id)" role="button">
+        Back/Cancel</a>
+    <input class="btn btn-success" type="submit" value="Register Term" type="button">
+    }
+</div>
+
+@views.html.common.nuggets.body_scripts()

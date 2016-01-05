@@ -19,7 +19,7 @@ package controllers
 import javax.inject._
 
 import models._
-import models.common.{Rate, RateHelper}
+import models.common.{Rate, RateHelper, Term, TermHelper}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 
@@ -55,6 +55,12 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
     Ok(views.html.schools.SchoolGuardianListView(guardians, school))
   }
 
+  def findAllTermsBySchool(school_id: Long) = Action { implicit request =>
+    val rates: List[Term] = TermHelper.findAllBySchool(school_id)
+    val school = SchoolHelper.findById(school_id)
+    Ok(views.html.schools.SchoolTermsListView(rates, school))
+  }
+
   /**
     * Displays a form for registering school
     * @return
@@ -70,6 +76,15 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
     */
   def registerStudent(school_id: Long) = Action { implicit request =>
     Ok(views.html.schools.AddSchoolStudent(StudentHelper.registerStudentForm, school_id))
+  }
+
+  /**
+    *
+    * @param school_id
+    * @return
+    */
+  def registerTerm(school_id: Long) = Action { implicit request =>
+    Ok(views.html.schools.AddSchoolTerm(TermHelper.registerTermForm, school_id))
   }
 
   /**
@@ -105,4 +120,27 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
     )
   }
 
+  /**
+    * After the form for registering a term is submitted, the student is registered with the school.
+    * @param school_id
+    * @return
+    */
+  def addTerm(school_id: Long) = Action { implicit request =>
+    TermHelper.registerTermForm.bindFromRequest().fold(
+      formsWithError => BadRequest(views.html.schools.AddSchoolTerm(formsWithError, school_id)),
+      termRegistrationData => {
+        val term = models.common.TermHelper.addTerm(termRegistrationData, school_id)
+        Redirect(routes.SchoolsController.findAllTermsBySchool(school_id))
+      }
+    )
+  }
+
+  /**
+    * After the form for registering a rate is submitted, the rate is registered with the school.
+    * @param school_id
+    * @return
+    */
+  def addRate(school_id: Long) = Action { implicit request =>
+    NotImplemented
+  }
 }

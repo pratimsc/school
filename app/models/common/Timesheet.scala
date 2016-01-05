@@ -16,46 +16,89 @@
 
 package models.common
 
-import models.{StudentHelper, Student}
-import org.joda.time.format.ISODateTimeFormat
-import org.joda.time.{DateTime, Hours}
+import models.common.reference.Reference
+import models.{SchoolHelper, Student, StudentHelper}
+import org.joda.time.{DateTime, Days, Hours}
 
-import scala.collection.mutable
+import scala.collection.immutable.Iterable
+import scala.collection.mutable.MutableList
 
 /**
   * Created by pratimsc on 03/01/16.
   */
 //case class Timesheet()
-case class DailyTimesheet(timesheet_id: Long, date: DateTime, recordedHours: Hours, status: String)
+case class DailyTimesheet(timesheet_id: Long, term_id: Long, student_id: Long, school_id: Long, date: DateTime, recordedHours: Hours, status: String)
 
-case class WeeklyTimesheet(timesheet_id: Long, startsOn: DateTime, endsOn: DateTime, recordedHours: List[DailyTimesheet], status: String)
-
-case class StudentWeeklyTimesheet(student: Student, timesheets: List[WeeklyTimesheet])
+case class WeeklyTimesheet(weekly_timesheet_id: Long, term_id: Long, student_id: Long, school_id: Long, startsOn: DateTime, endsOn: DateTime, recordedHours: List[DailyTimesheet], status: String)
 
 object TimesheetHelper {
-  val weeklyTimesheetList = scala.collection.mutable.MutableList(
-    WeeklyTimesheet(1, DateTime.parse("20151228", ISODateTimeFormat.basicDate), DateTime.parse("20160103", ISODateTimeFormat.basicDate),
-      List(1, 2, 3, 4, 5, 6, 7).map(d => DailyTimesheet(1 + d, DateTime.parse("20151227", ISODateTimeFormat.basicDate).plusDays(1), Hours.hours(5), "S")),
-      "E"),
-    WeeklyTimesheet(2, DateTime.parse("20160104", ISODateTimeFormat.basicDate), DateTime.parse("20160110", ISODateTimeFormat.basicDate),
-      List(1, 2, 3, 4, 5, 6, 7).map(d => DailyTimesheet(7 + d, DateTime.parse("20160103", ISODateTimeFormat.basicDate).plusDays(1), Hours.hours(5), "S"))
-      , "S"),
-    WeeklyTimesheet(3, DateTime.parse("20160111", ISODateTimeFormat.basicDate), DateTime.parse("20160117", ISODateTimeFormat.basicDate),
-      List(1, 2, 3, 4, 5, 6, 7).map(d => DailyTimesheet(14 + d, DateTime.parse("20160110", ISODateTimeFormat.basicDate).plusDays(1), Hours.hours(5), "S"))
-      , "E"),
-    WeeklyTimesheet(4, DateTime.parse("20160118", ISODateTimeFormat.basicDate), DateTime.parse("20160124", ISODateTimeFormat.basicDate),
-      List(1, 2, 3, 4, 5, 6, 7).map(d => DailyTimesheet(21 + d, DateTime.parse("20160117", ISODateTimeFormat.basicDate).plusDays(1), Hours.hours(5), "S"))
-      , "E")
-  )
 
-  val studentWeeklyTimesheetList: mutable.MutableList[StudentWeeklyTimesheet] = StudentHelper.studentList.map(s => StudentWeeklyTimesheet(s, weeklyTimesheetList.toList))
+  private var daily_timesheet_unique_id_count: Long = 0
+
+  private var weekly_timesheet_unique_id_count: Long = 0
+
+  val dailyTimesheet: MutableList[DailyTimesheet] = MutableList()
+
+  val weeklyTimesheetList: MutableList[WeeklyTimesheet] = MutableList()
 
 
-  def findAllTimesheetsByStudent(student_id: Long) = {
-    studentWeeklyTimesheetList.find(_.student.student_id == student_id) match {
-      case Some(r) => r.timesheets
+  def findAllTimesheetsByStudent(student_id: Long): List[WeeklyTimesheet] = {
+    weeklyTimesheetList.filter(_.student_id == student_id).toList
+  }
+
+  def findAllTimesheetsByTermAndSchool(term_id: Long, school_id: Long): List[WeeklyTimesheet] = {
+    weeklyTimesheetList.toList
+  }
+
+  def populateTimesheet(t: Term, school_id: Long): List[DailyTimesheet] = {
+    val duration = Days.daysBetween(t.begin.toLocalDate, t.finish.toLocalDate).getDays
+    val school = SchoolHelper.findById(school_id)
+    val students = StudentHelper.findAll(school_id)
+    val dtsl: List[DailyTimesheet] = school match {
+      case Some(sc) => for {
+        st <- students
+        day <- 0 until duration
+      } yield {
+        daily_timesheet_unique_id_count = daily_timesheet_unique_id_count + 1
+        val dts = DailyTimesheet(daily_timesheet_unique_id_count, t.term_id, st.student_id, sc.school_id, t.begin.plusDays(day), Reference.DAILY_TIMESHEET_INITIAL_HOURS, Reference.STATUS.ACTIVE)
+        dts
+      }
       case None => Nil
     }
+    //Add all time sheet to existing one.
+    dailyTimesheet ++= dtsl
+    //Prepare weekly timesheet
+    prepareWeeklyTimesheetFromDaily
+    dailyTimesheet.filter(_.term_id == t.term_id).toList
+  }
+
+  def purgeTimesheet(t: Term, school_id: Long): Boolean = {
+    val updatedTimesheets = dailyTimesheet.map { dts =>
+      if (dts.term_id == t.term_id && dts.school_id == school_id) dts.copy(status = Reference.STATUS.DELETE)
+      else dts
+    }
+    dailyTimesheet.clear()
+    dailyTimesheet ++= updatedTimesheets
+    //Prepare weekly timesheet
+    prepareWeeklyTimesheetFromDaily
+    updatedTimesheets.size match {
+      case 0 => false
+      case _ => true
+    }
+  }
+
+  private def prepareWeeklyTimesheetFromDaily(): Unit = {
+    weeklyTimesheetList.clear()
+    weekly_timesheet_unique_id_count = 0
+    val updateWeeklyTimesheet: Iterable[WeeklyTimesheet] = dailyTimesheet.groupBy(dts => (dts.term_id, dts.student_id, dts.school_id)).map { e =>
+      // WeeklyTimesheet(timesheet_id: Long, term_id: Long, student_id: Long, school_id: Long, startsOn: DateTime, endsOn: DateTime, recordedHours: List[DailyTimesheet], status: String)
+      weekly_timesheet_unique_id_count = weekly_timesheet_unique_id_count + 1
+      val dtsl = e._2.toList
+      val status = "A"
+      WeeklyTimesheet(weekly_timesheet_unique_id_count, e._1._1, e._1._2, e._1._3, dtsl.head.date, dtsl.last.date, dtsl, status)
+    }.toList
+    //Prepare weekly timesheet
+    weeklyTimesheetList ++= updateWeeklyTimesheet
   }
 
 }

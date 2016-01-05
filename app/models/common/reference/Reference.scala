@@ -16,10 +16,20 @@
 
 package models.common.reference
 
+import org.joda.time.Hours
+
 /**
   * Created by pratimsc on 03/01/16.
   */
 object Reference {
+  val DAILY_TIMESHEET_INITIAL_HOURS = Hours.hours(0)
+
+  object STATUS {
+    val ACTIVE = "A"
+    val DELETE = "D"
+    val INACTIVE = "I"
+  }
+
   val genderList = Seq("M" -> "Male", "F" -> "Female")
   val guardianStudentRelationshipList = Seq("GSR01" -> "Father", "GSR02" -> "Mother", "GSR03" -> "Grand Father", "GSR04" -> "Grand Mother", "GSR05" -> "Guardian")
   val ethnicityList = Seq("WBRI" -> "White-British", "AIND" -> "Asian/Asian British-Indian", "CHNE" -> "Chinese", "MWAS" -> "Mixed -White and Asian")

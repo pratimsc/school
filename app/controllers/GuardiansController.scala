@@ -28,7 +28,7 @@ import play.api.mvc.{Action, Controller}
 class GuardiansController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
   def findByIdAndSchool(guardian_id: Long, school_id: Long) = Action { implicit request =>
-    val guardian = GuardianHelper.findById(guardian_id, school_id)
+    val guardian = GuardianHelper.findByIdAndSchool(guardian_id, school_id)
     Ok(views.html.guardians.GuardianDetailView(guardian))
   }
 

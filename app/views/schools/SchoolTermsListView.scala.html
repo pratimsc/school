@@ -1,0 +1,11 @@
+@import models.common.Term
+
+@(tl: List[Term], sc: Option[School])(implicit messages: Messages)
+
+@views.html.common.nuggets.head("School Rate List View")
+
+@views.html.schools.nuggets.detailSchool(sc)
+
+@views.html.terms.nuggets.listTerms(tl, sc)
+
+@views.html.common.nuggets.body_scripts()

@@ -1,0 +1,48 @@
+@import models.common.Term
+@import org.maikalal.common.util.DateUtility
+@(terms: List[Term], school: Option[School])(implicit messages: Messages)
+
+
+<div id="term_list" class="term_list">
+
+    @terms match {
+
+        case Nil => {
+            <div> @Messages("school.terms.nodata")</div>
+        }
+
+        case h :: t => {
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Term Id</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @terms.map { term =>
+                    <tr>
+                        <td> @term.term_id</td>
+                        <td> @DateUtility.fommattedDate(term.begin)</td>
+                        <td>@DateUtility.fommattedDate(term.finish)</td>
+                        <td>@term.status</td>
+
+                        <td>
+                        @school match {
+                            case Some(s) => {
+                                <a class="btn btn-success" href="@routes.TermsController.findByIdAndSchool(term.term_id, s.school_id)" role="button">View Details</a>
+                            }
+                            case None => {}
+                        }
+
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    }
+</div>

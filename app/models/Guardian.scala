@@ -75,7 +75,7 @@ object GuardianHelper {
 
   def findById(guardian_id: Long): Option[Guardian] = guardianList.find(_.guardian_id == guardian_id)
 
-  def findById(guardian_id: Long, school_id: Long): Option[Guardian] = findById(guardian_id) match {
+  def findByIdAndSchool(guardian_id: Long, school_id: Long): Option[Guardian] = findById(guardian_id) match {
     case Some(guardian) =>
       if (guardian.students.find(_.student.school.school_id == school_id).isEmpty == false)
         Some(guardian)

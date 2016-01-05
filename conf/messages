@@ -31,10 +31,16 @@ schools.students.detail.applied.rates.nodata=No charges/rebates has been applied
 schools.students.detail.applied.rates.until.infinity=Never
 schools.students.detail.applied.rates.count.none=None
 
+#Terms
+school.terms.nodata=No terms are registered. Please use the available optios for registering a term.
+
+#Timesheets
 schools.students.detail.timesheet.weekly.nodata=No weekly timesheets created
 
-rates.list.nodata=No rates are registered Please use the available options for registering a rate.
+#Rates
+rates.list.nodata=No rates are registered. Please use the available options for registering a rate.
 rates.detail.nodata=The requested rate does not exist.
+
 
 #Registering student
 schools.students.add.gender.error=Select gender
