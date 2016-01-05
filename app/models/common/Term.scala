@@ -46,7 +46,7 @@ object TermHelper {
     Term(6, SchoolHelper.schoolList.get(1).get.school_id, initialDate.plusWeeks(13 + 13), initialDate.plusWeeks(13 + 13 + 12).plusDays(6), "A")
   )
   //nitialize all termsheets
-  termList.map(t => TimesheetHelper.populateTimesheet(t, t.school_id))
+  val tsl = termList.map(t => TimesheetHelper.populateTimesheet(t, t.school_id))
 
   //val schoolTermList: scala.collection.mutable.Map[Long, MutableList[Term]] = scala.collection.mutable.Map((SchoolHelper.schoolList.get(0).get.school_id -> termList),
   // (SchoolHelper.schoolList.get(1).get.school_id -> termList.map(t => t.copy(term_id = (t.term_id + termList.head.term_id)))))

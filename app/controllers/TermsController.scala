@@ -19,7 +19,7 @@ package controllers
 import javax.inject.Inject
 
 import models.SchoolHelper
-import models.common.TermHelper
+import models.common.{TermHelper, TimesheetHelper, WeeklyTimesheet}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 
@@ -35,8 +35,10 @@ class TermsController @Inject()(val messagesApi: MessagesApi) extends Controller
   }
 
   def findAllTimesheetsByTermAndSchool(term_id: Long, school_id: Long) = Action { implicit request =>
-
-    NotImplemented
+    val weeklyTimesheets: List[WeeklyTimesheet] = TimesheetHelper.findAllTimesheetsByTermAndSchool(term_id, school_id)
+    val school = SchoolHelper.findById(school_id)
+    val term = TermHelper.findById(term_id, school_id)
+    Ok(views.html.terms.TermTimesheetListView(weeklyTimesheets, term, school))
   }
 
   def deleteByIdAndSchool(term_id: Long, school_id: Long) = Action { implicit request =>

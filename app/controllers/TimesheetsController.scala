@@ -18,12 +18,18 @@ package controllers
 
 import javax.inject.Inject
 
+import models.SchoolHelper
+import models.common.TimesheetHelper
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.Controller
+import play.api.mvc.{Action, Controller}
 
 /**
   * Created by pratimsc on 03/01/16.
   */
 class TimesheetsController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
-
+  def findByIdAndSchool(timesheet_id: Long, school_id: Long) = Action { implicit request =>
+    val wts = TimesheetHelper.findByIdAndSchool(timesheet_id, school_id)
+    val school = SchoolHelper.findById(school_id)
+    Ok(views.html.timesheets.DetailWeeklyTimesheets(wts, school))
+  }
 }

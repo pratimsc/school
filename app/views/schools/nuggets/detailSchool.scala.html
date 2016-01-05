@@ -3,43 +3,47 @@
     @sc match {
         case Some(school) => {
             <div id="school_detail">
-                <label>School Id </label> @school.school_id
-                <label>School Name </label> @school.school_name
-
-                <label>School Address</label>
-                <address>
-                    @school.school_address.first_line.getOrElse("") ,
-                    @school.school_address.second_line.getOrElse("") ,
-                    @school.school_address.city.getOrElse("") ,
-                    @school.school_address.county.getOrElse("") ,
-                    @school.school_address.country ,
-                    @school.school_address.zip_code
-                </address>
-
-                <div id="school_permitted_actions">
-                    <div id="school_permitted_actions_view">
-                        <a class="btn btn-primary" href="@routes.SchoolsController.findAllStudentsBySchool(school.school_id)" role="button">Students</a>
-                        <a class="btn btn-primary" href="@routes.SchoolsController.findAllGuardiansBySchool(school.school_id)" role="button">Guardians</a>
-                        <a class="btn btn-primary" href="@routes.SchoolsController.findAllRatesBySchool(school.school_id)" role="button">Charges/Rebates</a>
-                        <a class="btn btn-primary" href="@routes.SchoolsController.findAllTermsBySchool(school.school_id)" role="button">Terms</a>
-                        <a class="btn btn-default" href="#" role="button">Holidays</a>
-                        <a class="btn btn-default" href="#" role="button">Time Sheets</a>
-                        <a class="btn btn-default" href="#" role="button">Staffs/Admins</a>
-                    </div>
-                    <div id="school_permitted_actions_update">
-                        <a class="btn btn-warning" href="#" role="button">Edit</a>
-                    </div>
-                    <div id="school_permitted_actions_add">
-                        <a class="btn btn-primary" href="@routes.SchoolsController.registerStudent(school.school_id)" role="button">Add Students</a>
-                        <a class="btn btn-primary" href="@routes.SchoolsController.registerTerm(school.school_id)" role="button">Add Terms</a>
-                        <a class="btn btn-default" href="#" role="button">Add Holidays</a>
-                        <a class="btn btn-default" href="#" role="button">Add Staffs</a>
-                        <a class="btn btn-default" href="#" role="button">Add Time Sheets</a>
-                        <a class="btn btn-default" href="#" role="button">Add Charges/Rebates</a>
-                    </div>
+                <div>
+                    <label>School Id </label> @school.school_id
                 </div>
-            </div>
-        }
+                <div>
+                    <label>School Name </label> @school.school_name
+                </div>
+                <label>School Address</label>
+                <div>
+                    <address>
+                        @school.school_address.first_line.getOrElse("") ,
+                        @school.school_address.second_line.getOrElse("") ,
+                        @school.school_address.city.getOrElse("") ,
+                        @school.school_address.county.getOrElse("") ,
+                        @school.school_address.country ,
+                        @school.school_address.zip_code
+                    </address>
+                    <div>
+
+                        <div id="school_permitted_actions">
+                            <div id="school_permitted_actions_view">
+                                <a class="btn btn-primary" href="@routes.SchoolsController.findAllStudentsBySchool(school.school_id)" role="button">Students</a>
+                                <a class="btn btn-primary" href="@routes.SchoolsController.findAllGuardiansBySchool(school.school_id)" role="button">Guardians</a>
+                                <a class="btn btn-primary" href="@routes.SchoolsController.findAllRatesBySchool(school.school_id)" role="button">Charges/Rebates</a>
+                                <a class="btn btn-primary" href="@routes.SchoolsController.findAllTermsBySchool(school.school_id)" role="button">Terms</a>
+                                <a class="btn btn-primary" href="@routes.SchoolsController.findAllWeeklyTimesheetBySchool(school.school_id)" role="button">Time Sheets</a>
+                                <a class="btn btn-default" href="#" role="button">Holidays</a>
+                                <a class="btn btn-default" href="#" role="button">Staffs/Admins</a>
+                            </div>
+                            <div id="school_permitted_actions_update">
+                                <a class="btn btn-warning" href="#" role="button">Edit</a>
+                            </div>
+                            <div id="school_permitted_actions_add">
+                                <a class="btn btn-primary" href="@routes.SchoolsController.registerStudent(school.school_id)" role="button">Add Students</a>
+                                <a class="btn btn-primary" href="@routes.SchoolsController.registerTerm(school.school_id)" role="button">Add Terms</a>
+                                <a class="btn btn-default" href="#" role="button">Add Holidays</a>
+                                <a class="btn btn-default" href="#" role="button">Add Staffs</a>
+                                <a class="btn btn-default" href="#" role="button">Add Charges/Rebates</a>
+                            </div>
+                        </div>
+                    </div>
+                    }
         case None => {
             <div> @Messages("schools.detail.nodata")</div>
         }

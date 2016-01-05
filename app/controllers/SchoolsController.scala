@@ -19,7 +19,7 @@ package controllers
 import javax.inject._
 
 import models._
-import models.common.{Rate, RateHelper, Term, TermHelper}
+import models.common._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, Controller}
 
@@ -59,6 +59,12 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
     val rates: List[Term] = TermHelper.findAllBySchool(school_id)
     val school = SchoolHelper.findById(school_id)
     Ok(views.html.schools.SchoolTermsListView(rates, school))
+  }
+
+  def findAllWeeklyTimesheetBySchool(school_id: Long) = Action { implicit request =>
+    val weeklyTimesheets: List[WeeklyTimesheet] = TimesheetHelper.findAllTimesheetsBySchool(school_id)
+    val school = SchoolHelper.findById(school_id)
+    Ok(views.html.schools.SchoolTimesheetListView(weeklyTimesheets, school))
   }
 
   /**

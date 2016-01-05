@@ -7,52 +7,60 @@ GET           /                                                                 
 
 # School related request
 GET           /schools/register                                                  controllers.SchoolsController.registerSchool
-GET           /schools                                                           controllers.SchoolsController.findAll
-GET           /schools/all                                                       controllers.SchoolsController.findAll
-GET           /schools/:school_id                                                controllers.SchoolsController.findById(school_id:Long)
-GET           /schools/:school_id/students                                       controllers.SchoolsController.findAllStudentsBySchool(school_id:Long)
-GET           /schools/:school_id/students/all                                   controllers.SchoolsController.findAllStudentsBySchool(school_id:Long)
-GET           /schools/:school_id/students/register                              controllers.SchoolsController.registerStudent(school_id:Long)
-GET           /schools/:school_id/guardians                                      controllers.SchoolsController.findAllGuardiansBySchool(school_id:Long)
-GET           /schools/:school_id/guardians/all                                  controllers.SchoolsController.findAllGuardiansBySchool(school_id:Long)
-GET           /schools/:school_id/rates                                          controllers.SchoolsController.findAllRatesBySchool(school_id:Long)
-GET           /schools/:school_id/rates/all                                      controllers.SchoolsController.findAllRatesBySchool(school_id:Long)
-GET           /schools/:school_id/terms                                          controllers.SchoolsController.findAllTermsBySchool(school_id:Long)
-GET           /schools/:school_id/terms/all                                      controllers.SchoolsController.findAllTermsBySchool(school_id:Long)
-GET           /schools/:school_id/terms/register                                 controllers.SchoolsController.registerTerm(school_id:Long)
+GET         /schools                                                           controllers.SchoolsController.findAll
+GET         /schools/all                                                       controllers.SchoolsController.findAll
+GET         /schools/:school_id                                                controllers.SchoolsController.findById(school_id:Long)
+GET         /schools/:school_id/students                                       controllers.SchoolsController.findAllStudentsBySchool(school_id:Long)
+GET         /schools/:school_id/students/all                                   controllers.SchoolsController.findAllStudentsBySchool(school_id:Long)
+GET         /schools/:school_id/students/register                              controllers.SchoolsController.registerStudent(school_id:Long)
+GET         /schools/:school_id/guardians                                      controllers.SchoolsController.findAllGuardiansBySchool(school_id:Long)
+GET         /schools/:school_id/guardians/all                                  controllers.SchoolsController.findAllGuardiansBySchool(school_id:Long)
+GET         /schools/:school_id/timesheets                                     controllers.SchoolsController.findAllWeeklyTimesheetBySchool(school_id:Long)
+GET         /schools/:school_id/timesheets/all                                 controllers.SchoolsController.findAllWeeklyTimesheetBySchool(school_id:Long)
+
 
 #Guardian related request
-GET           /schools/:school_id/guardians/:guardian_id                         controllers.GuardiansController.findByIdAndSchool(guardian_id:Long,school_id:Long)
-GET           /guardians/:guardian_id                                            controllers.GuardiansController.findById(guardian_id:Long)
-GET           /guardians/:guardian_id/schools                                    controllers.GuardiansController.findAllSchoolByGuardian(guardian_id:Long)
-GET           /guardians/:guardian_id/students                                   controllers.GuardiansController.findAllStudentsByGuardian(guardian_id:Long)
+GET         /schools/:school_id/guardians/:guardian_id                         controllers.GuardiansController.findByIdAndSchool(guardian_id:Long,school_id:Long)
+GET         /guardians/:guardian_id                                            controllers.GuardiansController.findById(guardian_id:Long)
+GET         /guardians/:guardian_id/schools                                    controllers.GuardiansController.findAllSchoolByGuardian(guardian_id:Long)
+GET         /guardians/:guardian_id/students                                   controllers.GuardiansController.findAllStudentsByGuardian(guardian_id:Long)
 
 #Student related request
-GET           /schools/:school_id/students/:student_id                           controllers.StudentsController.findByIdAndSchool(student_id:Long,school_id:Long)
-GET           /schools/:school_id/students/:student_id/guardians                 controllers.StudentsController.findAllGuardiansByStudent(student_id:Long,school_id:Long)
-GET           /schools/:school_id/students/:student_id/guardians/register        controllers.StudentsController.registerGuardian(student_id:Long,school_id:Long)
-GET           /schools/:school_id/students/:student_id/guardians/all             controllers.StudentsController.findAllGuardiansByStudent(student_id:Long,school_id:Long)
-GET           /schools/:school_id/students/:student_id/rates                     controllers.StudentsController.findAllAppliedRates(student_id:Long, school_id:Long)
-GET           /schools/:school_id/students/:student_id/rates/all                 controllers.StudentsController.findAllAppliedRates(student_id:Long, school_id:Long)
-GET           /schools/:school_id/students/:student_id/timesheets                controllers.StudentsController.findAllTimesheetsByStudentAndSchool(student_id:Long, school_id:Long)
+GET         /schools/:school_id/students/:student_id                           controllers.StudentsController.findByIdAndSchool(student_id:Long,school_id:Long)
+GET         /schools/:school_id/students/:student_id/guardians                 controllers.StudentsController.findAllGuardiansByStudent(student_id:Long,school_id:Long)
+GET         /schools/:school_id/students/:student_id/guardians/register        controllers.StudentsController.registerGuardian(student_id:Long,school_id:Long)
+GET         /schools/:school_id/students/:student_id/guardians/all             controllers.StudentsController.findAllGuardiansByStudent(student_id:Long,school_id:Long)
+GET         /schools/:school_id/students/:student_id/rates                     controllers.StudentsController.findAllAppliedRates(student_id:Long, school_id:Long)
+GET         /schools/:school_id/students/:student_id/rates/all                 controllers.StudentsController.findAllAppliedRates(student_id:Long, school_id:Long)
+GET         /schools/:school_id/students/:student_id/timesheets                controllers.StudentsController.findAllTimesheetsByStudentAndSchool(student_id:Long, school_id:Long)
 
 #Charges and Rebates related request
-GET           /rates/:rate_id                                                    controllers.RatesController.findRateById(rate_id:Long)
-GET           /rates/:rate_id/schools                                            controllers.RatesController.findAllSchoolsByRate(rate_id:Long)
-GET           /rates/:rate_id/students                                           controllers.RatesController.findAllStudentsByRate(rate_id:Long)
+GET         /schools/:school_id/rates                                          controllers.SchoolsController.findAllRatesBySchool(school_id:Long)
+GET         /schools/:school_id/rates/all                                      controllers.SchoolsController.findAllRatesBySchool(school_id:Long)
+GET         /rates/:rate_id                                                    controllers.RatesController.findRateById(rate_id:Long)
+GET         /rates/:rate_id/schools                                            controllers.RatesController.findAllSchoolsByRate(rate_id:Long)
+GET         /rates/:rate_id/students                                           controllers.RatesController.findAllStudentsByRate(rate_id:Long)
 
 #Terms related request
-GET           /schools/:school_id/terms/:term_id                                 controllers.TermsController.findByIdAndSchool(term_id:Long,school_id:Long)
+GET         /schools/:school_id/terms                                          controllers.SchoolsController.findAllTermsBySchool(school_id:Long)
+GET         /schools/:school_id/terms/all                                      controllers.SchoolsController.findAllTermsBySchool(school_id:Long)
+GET         /schools/:school_id/terms/register                                 controllers.SchoolsController.registerTerm(school_id:Long)
+GET         /schools/:school_id/terms/:term_id                                 controllers.TermsController.findByIdAndSchool(term_id:Long,school_id:Long)
+GET         /schools/:school_id/terms/:term_id/timesheets                      controllers.TermsController.findAllTimesheetsByTermAndSchool(term_id:Long,school_id:Long)
+GET         /schools/:school_id/terms/:term_id/timesheets/all                  controllers.TermsController.findAllTimesheetsByTermAndSchool(term_id:Long,school_id:Long)
+
+#Terms timesheet request
+GET         /schools/:school_id/timesheets/:timesheet_id                       controllers.TimesheetsController.findByIdAndSchool(timesheet_id:Long,school_id:Long)
 
 #All Create operations
-POST          /schools                                                           controllers.SchoolsController.addSchool
-POST          /schools/:school_id/students                                       controllers.SchoolsController.addStudent(school_id:Long)
-POST          /schools/:school_id/rates                                          controllers.SchoolsController.addRate(school_id:Long)
-POST          /schools/:school_id/terms                                          controllers.SchoolsController.addTerm(school_id:Long)
-POST          /schools/:school_id/students/:student_id/guardians                 controllers.StudentsController.addGuardian(student_id:Long, school_id:Long)
-POST          /schools/:school_id/students/:student_id/rates                     controllers.StudentsController.addRate(student_id:Long, school_id:Long)
-POST          /schools/:school_id/students/:student_id/rebates                   controllers.StudentsController.addRebate(student_id:Long, school_id:Long)
-POST          /guardians/:guardian_id/students/                                  controllers.GuardiansController.findAllStudentsByGuardian(guardian_id:Long)
+POST        /schools                                                           controllers.SchoolsController.addSchool
+POST        /schools/:school_id/students                                       controllers.SchoolsController.addStudent(school_id:Long)
+POST        /schools/:school_id/rates                                          controllers.SchoolsController.addRate(school_id:Long)
+POST        /schools/:school_id/terms                                          controllers.SchoolsController.addTerm(school_id:Long)
+POST        /schools/:school_id/students/:student_id/guardians                 controllers.StudentsController.addGuardian(student_id:Long, school_id:Long)
+POST        /schools/:school_id/students/:student_id/rates                     controllers.StudentsController.addRate(student_id:Long, school_id:Long)
+POST        /schools/:school_id/students/:student_id/rebates                   controllers.StudentsController.addRebate(student_id:Long, school_id:Long)
+POST        /guardians/:guardian_id/students/                                  controllers.GuardiansController.findAllStudentsByGuardian(guardian_id:Long)
 
 #All Update operations
 

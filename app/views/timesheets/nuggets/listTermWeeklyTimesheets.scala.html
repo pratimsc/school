@@ -1,7 +1,7 @@
 @import models.common.WeeklyTimesheet
 @(wts: List[WeeklyTimesheet])(implicit messages: Messages)
 
-<div id="school_student_weekly_timesheet_list" class="school_student_weekly_timesheet_list">
+<div id="school_term_weekly_timesheet_list" class="school_term_weekly_timesheet_list">
     <table class="table table-striped table-hover">
         <thead>
             <tr>
@@ -30,7 +30,7 @@
             @wts match {
                 case Nil => {
                     <tr>
-                        <td colspan="10">@Messages("schools.detail.timesheet.weekly.nodata")</td>
+                        <td colspan="10">@Messages("schools.term.timesheet.weekly.nodata")</td>
                     </tr>
                 }
                 case _ => {
@@ -47,10 +47,9 @@
                                     <td>@s.name.first</td>
                                 }
                                 case None => {
-                                    <td colspan="3">@Messages("schools.detail.timesheet.weekly.nostudent")</td>
+                                    <td colspan="3">@Messages("schools.term.timesheet.weekly.nostudent")</td>
                                 }
                             }
-
                             @wt.recordedHours.map{ dt =>
                             <td>@dt.recordedHours.getHours @dt.recordedHours.getFieldType</td>
                     }

@@ -1,0 +1,10 @@
+@import models.common.WeeklyTimesheet
+@(wts: List[WeeklyTimesheet], school: Option[School])(implicit messages: Messages)
+
+@views.html.common.nuggets.head("School Timesheet List View")
+
+@views.html.schools.nuggets.detailSchool(school)
+
+@views.html.timesheets.nuggets.listSchoolWeeklyTimesheets(wts)
+
+@views.html.common.nuggets.body_scripts()

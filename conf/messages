@@ -36,6 +36,11 @@ school.terms.nodata=No terms are registered. Please use the available optios for
 
 #Timesheets
 schools.students.detail.timesheet.weekly.nodata=No weekly timesheets created
+schools.detail.timesheet.weekly.nodata = No weekly timesheets created
+schools.term.timesheet.weekly.nodata = No weekly timesheets created
+schools.detail.timesheet.weekly.nostudent = -
+schools.term.timesheet.weekly.nostudent = -
+schools.timesheet.weekly.nodata = No weekly timesheet data found
 
 #Rates
 rates.list.nodata=No rates are registered. Please use the available options for registering a rate.

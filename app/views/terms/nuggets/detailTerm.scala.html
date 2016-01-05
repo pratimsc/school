@@ -32,7 +32,7 @@
                 @s match {
                     case Some(school) => {
                         <div id="term_permitted_actions_view">
-                            <a class="btn btn-primary" href="@@routes.TermsController.findAllTimesheetsByTermAndSchool(term.term_id, school.school_id)" role="button">Time Sheets</a>
+                            <a class="btn btn-primary" href="@routes.TermsController.findAllTimesheetsByTermAndSchool(term.term_id, school.school_id)" role="button">Time Sheets</a>
                         </div>
                     }
                     case None => {}
