@@ -28,6 +28,9 @@ object Reference {
     val ACTIVE = "A"
     val DELETE = "D"
     val INACTIVE = "I"
+    val SUSPENDED = "S"
+    val BEING_PROCESSED = "P"
+    val HISTORICAL = "H"
   }
 
   val genderList = Seq("M" -> "Male", "F" -> "Female")

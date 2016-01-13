@@ -16,7 +16,9 @@
 
 package models
 
+import models.common.reference.Reference
 import models.common.{Address, AddressHelper, AddressRegistrationData}
+import org.maikalal.common.util.DatabaseUtility
 import play.api.data.Forms._
 import play.api.data._
 
@@ -56,11 +58,10 @@ object SchoolHelper {
   }
 
   def addSchool(s: SchoolRegistration): School = {
+    val school_id = DatabaseUtility.getUniqueSchoolId.getOrElse(0L)
     val address = AddressHelper.addAddress(s.school_address)
-    val school = schoolList.toList match {
-      case Nil => School(1, s.school_name, address, "A")
-      case _ => School(schoolList.last.school_id + 1, s.school_name, address, "A")
-    }
+
+    val school = School(school_id, s.school_name, address, Reference.STATUS.ACTIVE)
     schoolList += school
     school
   }

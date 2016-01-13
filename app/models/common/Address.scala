@@ -16,6 +16,7 @@
 
 package models.common
 
+import org.maikalal.common.util.DatabaseUtility
 import play.api.data.Forms._
 
 /**
@@ -45,10 +46,8 @@ object AddressHelper {
   def findById(address_id: Long): Option[Address] = addressList.find(_.address_id == address_id)
 
   def addAddress(a: AddressRegistrationData): Address = {
-    val address = addressList.toList match {
-      case Nil => Address(1, a.first_line, a.second_line, a.city, a.county, a.country, a.zip_code)
-      case _ => Address(addressList.last.address_id + 1, a.first_line, a.second_line, a.city, a.county, a.country, a.zip_code)
-    }
+    val address_id: Long = DatabaseUtility.getUniqueAddressId.getOrElse(0L)
+    val address = Address(address_id, a.first_line, a.second_line, a.city, a.county, a.country, a.zip_code)
     addressList += address
     address
   }
