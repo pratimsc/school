@@ -45,11 +45,12 @@ object AddressHelper {
 
   def findById(address_id: Long): Option[Address] = addressList.find(_.address_id == address_id)
 
-  def addAddress(a: AddressRegistrationData): Address = {
-    val address_id: Long = DatabaseUtility.getUniqueAddressId.getOrElse(0L)
-    val address = Address(address_id, a.first_line, a.second_line, a.city, a.county, a.country, a.zip_code)
-    addressList += address
-    address
+  def manufactureAddress(a: AddressRegistrationData): Option[Address] = DatabaseUtility.getUniqueAddressId match {
+    case Some(address_id) =>
+      val address = Address(address_id, a.first_line, a.second_line, a.city, a.county, a.country, a.zip_code)
+      addressList += address
+      Some(address)
+    case None => None
   }
 
   /*

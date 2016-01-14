@@ -27,7 +27,7 @@ import play.api.mvc.{Action, Controller}
   * Created by pratimsc on 03/01/16.
   */
 class TimesheetsController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
-  def findByIdAndSchool(timesheet_id: Long, school_id: Long) = Action { implicit request =>
+  def findByIdAndSchool(timesheet_id: Long, school_id: String) = Action { implicit request =>
     val wts = TimesheetHelper.findByIdAndSchool(timesheet_id, school_id)
     val school = SchoolHelper.findById(school_id)
     Ok(views.html.timesheets.DetailWeeklyTimesheets(wts, school))

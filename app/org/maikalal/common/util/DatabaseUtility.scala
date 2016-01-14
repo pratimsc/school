@@ -36,31 +36,30 @@ object DatabaseUtility {
     * A helper function to execute database commands and also carry out house keeping
     * @param f
     */
-  def executeWithTransaction[T](f: (OrientGraph) => T): Option[T] = {
-    val graph: OrientGraph = graphFactory.getTx
-    try {
-      val res = f(graph)
-      graph.commit()
-      Some(res)
-    } catch {
-      case t: Throwable => graph.rollback()
-        Logger.error("Failed executing transaction on Graph", t)
-        None
-    } finally {
-      if (!graph.isClosed) graph.shutdown()
-    }
+  def executeWithTransaction[A](graph: OrientGraph)(f: (OrientGraph) => A): Option[A] = try {
+    val res = f(graph)
+    graph.commit()
+    Some(res)
+  } catch {
+    case t: Throwable => graph.rollback()
+      Logger.error("Failed executing transaction controlled query on Graph", t)
+      None
+  } finally {
+    if (!graph.isClosed) graph.shutdown()
   }
+
 
   /**
     * A helper function to execute database commands without transactions
     */
-  def executeWithNoTransaction[A](f: (OrientGraphNoTx) => A): A = {
-    val graph: OrientGraphNoTx = graphFactory.getNoTx
-    try {
-      f(graph)
-    } finally {
-      graph.shutdown()
-    }
+  def executeWithNoTransaction[A](graph: OrientGraphNoTx)(f: (OrientGraphNoTx) => A): Option[A] = try {
+    Some(f(graph))
+  } catch {
+    case t: Throwable => graph.rollback()
+      Logger.error("Failed executing transaction less query on Graph", t)
+      None
+  } finally {
+    graph.shutdown()
   }
 
 
@@ -68,11 +67,22 @@ object DatabaseUtility {
 
   def getUniqueSchoolId: Option[Long] = getUniqueId("school_id")
 
-  private def getUniqueId(name: String): Option[Long] = executeWithTransaction[Long]((g: OrientGraph) => {
+  private def getUniqueId(name: String): Option[Long] = executeWithTransaction[Long](graphFactory.getTx)(g => {
     val sql = s"UPDATE IdCounter INCREMENT value = 1 return after $$current.value.asLong() WHERE name = '${name}'"
     val result = g.command(new OCommandSQL(sql)).execute[java.lang.Iterable[OrientVertex]]()
     val id: Long = result.iterator.next().getProperty("value").asInstanceOf[Long]
     id
   })
 
+  def caseClassToPropertyMap[T](o: T): Map[String, Any] = {
+    val m = o.getClass.getDeclaredFields.sortWith((a, b) => a.hashCode() < b.hashCode()).foldRight(Map[String, Any]())((field, map) => {
+      field.setAccessible(true)
+      field.get(o) match {
+        case Some(v) => map + (field.getName -> v)
+        case None => map
+        case a: Any => map + (field.getName -> a)
+      }
+    })
+    m
+  }
 }

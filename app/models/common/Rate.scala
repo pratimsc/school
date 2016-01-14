@@ -121,7 +121,7 @@ object RateHelper {
 
   def findRateById(rate_id: Long) = ratesList.find(_.rate_id == rate_id)
 
-  def findAllRatesBySchool(school_id: Long): List[Rate] = schoolRatesList.filter(_._1.school_id == school_id).map(_._2).toList
+  def findAllRatesBySchool(school_id: String): List[Rate] = schoolRatesList.filter(_._1.school_id == school_id).map(_._2).toList
 
   def findAllRatesByStudent(student_id: Long): List[Rate] = studentRatesList.filter(_.student.student_id == student_id).map(_.rate).toList
 

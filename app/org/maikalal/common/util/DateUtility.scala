@@ -27,5 +27,5 @@ object DateUtility {
 
   val key_date_format: String = Play.current.configuration.getString("application.date.display.format").getOrElse("YYYY-MM-dd")
 
-  def fommattedDate(date: DateTime, format: String = key_date_format) = DateTimeFormat.forPattern(format).print(date)
+  def fommattedDate(date: DateTime, format: String = key_date_format): String = DateTimeFormat.forPattern(format).print(date)
 }

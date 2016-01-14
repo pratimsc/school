@@ -1,7 +1,7 @@
 @import helper._
 @import models.common.reference.Reference
 
-@(addGuardianForm: Form[GuardianRegistrationData], student_id: Long, school_id: Long)(implicit messages: Messages)
+@(addGuardianForm: Form[GuardianRegistrationData], student_id: Long, school_id: String)(implicit messages: Messages)
 
 @views.html.common.nuggets.head("Register Guardian")
 

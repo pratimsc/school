@@ -32,36 +32,36 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
     Ok(views.html.schools.SchoolListView(SchoolHelper.findAll))
   }
 
-  def findById(school_id: Long) = Action { implicit request =>
+  def findById(school_id: String) = Action { implicit request =>
     Ok(views.html.schools.SchoolDetailView(SchoolHelper.findById(school_id)))
   }
 
-  def findAllStudentsBySchool(school_id: Long) = Action { implicit request =>
+  def findAllStudentsBySchool(school_id: String) = Action { implicit request =>
     val students = StudentHelper.findAll(school_id)
     val school = SchoolHelper.findById(school_id)
     //students.foreach(s => println(s"Students are [${s.name}]"))
     Ok(views.html.schools.SchoolStudentListView(students, school))
   }
 
-  def findAllRatesBySchool(school_id: Long) = Action { implicit request =>
+  def findAllRatesBySchool(school_id: String) = Action { implicit request =>
     val rates: List[Rate] = RateHelper.findAllRatesBySchool(school_id)
     val school = SchoolHelper.findById(school_id)
     Ok(views.html.schools.SchoolRatesListView(rates, school))
   }
 
-  def findAllGuardiansBySchool(school_id: Long) = Action { implicit request =>
+  def findAllGuardiansBySchool(school_id: String) = Action { implicit request =>
     val guardians = GuardianHelper.findAllBySchool(school_id)
     val school = SchoolHelper.findById(school_id)
     Ok(views.html.schools.SchoolGuardianListView(guardians, school))
   }
 
-  def findAllTermsBySchool(school_id: Long) = Action { implicit request =>
+  def findAllTermsBySchool(school_id: String) = Action { implicit request =>
     val rates: List[Term] = TermHelper.findAllBySchool(school_id)
     val school = SchoolHelper.findById(school_id)
     Ok(views.html.schools.SchoolTermsListView(rates, school))
   }
 
-  def findAllWeeklyTimesheetBySchool(school_id: Long) = Action { implicit request =>
+  def findAllWeeklyTimesheetBySchool(school_id: String) = Action { implicit request =>
     val weeklyTimesheets: List[WeeklyTimesheet] = TimesheetHelper.findAllTimesheetsBySchool(school_id)
     val school = SchoolHelper.findById(school_id)
     Ok(views.html.schools.SchoolTimesheetListView(weeklyTimesheets, school))
@@ -80,7 +80,7 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
     * @param school_id
     * @return
     */
-  def registerStudent(school_id: Long) = Action { implicit request =>
+  def registerStudent(school_id: String) = Action { implicit request =>
     Ok(views.html.schools.AddSchoolStudent(StudentHelper.registerStudentForm, school_id))
   }
 
@@ -89,7 +89,7 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
     * @param school_id
     * @return
     */
-  def registerTerm(school_id: Long) = Action { implicit request =>
+  def registerTerm(school_id: String) = Action { implicit request =>
     Ok(views.html.schools.AddSchoolTerm(TermHelper.registerTermForm, school_id))
   }
 
@@ -116,7 +116,7 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
     * @param school_id
     * @return
     */
-  def addStudent(school_id: Long) = Action { implicit request =>
+  def addStudent(school_id: String) = Action { implicit request =>
     StudentHelper.registerStudentForm.bindFromRequest().fold(
       formsWithError => BadRequest(views.html.schools.AddSchoolStudent(formsWithError, school_id)),
       studentRegistrationData => {
@@ -131,7 +131,7 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
     * @param school_id
     * @return
     */
-  def addTerm(school_id: Long) = Action { implicit request =>
+  def addTerm(school_id: String) = Action { implicit request =>
     TermHelper.registerTermForm.bindFromRequest().fold(
       formsWithError => BadRequest(views.html.schools.AddSchoolTerm(formsWithError, school_id)),
       termRegistrationData => {
@@ -146,7 +146,7 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
     * @param school_id
     * @return
     */
-  def addRate(school_id: Long) = Action { implicit request =>
+  def addRate(school_id: String) = Action { implicit request =>
     NotImplemented
   }
 }

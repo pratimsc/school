@@ -16,17 +16,20 @@
 
 package models
 
+import com.tinkerpop.blueprints.impls.orient.OrientVertex
 import models.common.reference.Reference
 import models.common.{Address, AddressHelper, AddressRegistrationData}
-import org.maikalal.common.util.DatabaseUtility
+import org.maikalal.common.util.{DatabaseUtility, DateUtility}
 import play.api.data.Forms._
 import play.api.data._
+
+import scala.collection.JavaConversions._
 
 /**
   * Created by pratimsc on 28/12/15.
   */
 
-case class School(school_id: Long, school_name: String, school_address: Address, status: String)
+case class School(school_id: String, school_name: String, school_address: Address, status: String)
 
 case class SchoolRegistration(school_name: String, school_address: AddressRegistrationData)
 
@@ -43,13 +46,19 @@ object SchoolHelper {
    * A non persistence storage for Schools
    */
   val schoolList = scala.collection.mutable.MutableList[School](
-    School(1, "Mongo Bongo School", AddressHelper.findById(1).get, "A"),
-    School(2, "Tooko Takka School", AddressHelper.findById(2).get, "A")
+    School("SC1", "Mongo Bongo School", AddressHelper.findById(1).get, "A"),
+    School("SC2", "Tooko Takka School", AddressHelper.findById(2).get, "A")
   )
 
   def findAll: List[School] = schoolList.toList
 
-  def findById(school: Long): Option[School] = schoolList.find(_.school_id == school)
+  //def findById(school: Long): Option[School] = schoolList.find(_.school_id == school)
+  def findById(school: String): Option[School] = DatabaseUtility.executeWithNoTransaction(DatabaseUtility.graphFactory.getNoTx)(g => {
+    g.getVertices("School.school_id", school).iterator().toList match {
+      case h :: t => ???
+      case Nil => ???
+    }
+  })
 
   def findAllSchoolsByGuardianId(guardian_id: Long) = GuardianHelper.findById(guardian_id) match {
     case Some(guardian) =>
@@ -57,13 +66,30 @@ object SchoolHelper {
     case None => Nil
   }
 
-  def addSchool(s: SchoolRegistration): School = {
-    val school_id = DatabaseUtility.getUniqueSchoolId.getOrElse(0L)
-    val address = AddressHelper.addAddress(s.school_address)
+  def addSchool(s: SchoolRegistration): Option[School] = DatabaseUtility.getUniqueSchoolId match {
+    case Some(school_id) =>
+      AddressHelper.manufactureAddress(s.school_address) match {
+        case Some(address) =>
+          val school = School("SC" + school_id, s.school_name, address, Reference.STATUS.ACTIVE)
 
-    val school = School(school_id, s.school_name, address, Reference.STATUS.ACTIVE)
-    schoolList += school
-    school
+          DatabaseUtility.executeWithTransaction(DatabaseUtility.graphFactory.getTx)(g => {
+            val scV: OrientVertex = g.addVertex("School", null)
+            scV.setProperties(mapAsJavaMap(Map("school_id" -> school.school_id, "school_name" -> school.school_name, "status" -> Reference.STATUS.ACTIVE)))
+            val addV = g.addVertex("Address", null)
+            addV.setProperties(mapAsJavaMap(DatabaseUtility.caseClassToPropertyMap(address)))
+            scV.addEdge("has_address", addV, null, null, mapAsJavaMap(Map("type" -> Reference.AddressType.OFFICE, "status" -> Reference.STATUS.ACTIVE, "since" -> DateUtility.fommattedDate(Reference.businessDate))))
+            scV
+          }) match {
+            case Some(_) =>
+              //School and Address successfully added
+              schoolList += school
+              Some(school)
+            case None => None //No data was added
+          }
+        case None => None //Could not get the Address
+      }
+    case None => None //Could not get School Id
   }
+
 }
 

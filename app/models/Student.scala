@@ -20,6 +20,7 @@ import models.common._
 import org.joda.time.DateTime
 import play.api.data.Form
 import play.api.data.Forms._
+import scala.collection.JavaConverters._
 
 
 case class Student(student_id: Long, school: School, name: Name, status: String, gender: String, address: Address, dob: DateTime, email: Option[String], ethnicity: Option[String], sen_code: Option[String])
@@ -44,16 +45,16 @@ object StudentHelper {
    * A non persistence storage for Schools
    */
   val studentList = scala.collection.mutable.MutableList[Student](
-    Student(1, SchoolHelper.findById(1).get, Name("George", Some("Washington"), "DC"), "A", "M", AddressHelper.findById(3).get, DateTime.parse("2012-1-1"), Some("george.dc.washington@blahblah.com"), Some("White American"), Some("Sen code 01")),
-    Student(2, SchoolHelper.findById(1).get, Name("Neon", Some("Anderson"), "Matrix"), "A", "M", AddressHelper.findById(4).get, DateTime.parse("2012-1-2"), Some("leon.matrix.anderson@blahblah.com"), Some("White American"), Some("Sen code 01")),
-    Student(3, SchoolHelper.findById(2).get, Name("Lisa", Some("Butcher"), "Gamer"), "A", "F", AddressHelper.findById(5).get, DateTime.parse("2012-1-3"), Some("lisa.gamer.butcher@blahblah.com"), Some("Black American"), Some("Sen code 01")),
-    Student(4, SchoolHelper.findById(2).get, Name("Bhima", Some("Pandu"), "Mahabharata"), "A", "M", AddressHelper.findById(6).get, DateTime.parse("2012-1-4"), Some("bhima.mahabharata.pandu@blahblah.com"), Some("Ancient Indian"), Some("Sen code 01")),
-    Student(5, SchoolHelper.findById(2).get, Name("Thor", Some("Hammer"), "Pagan God"), "A", "M", AddressHelper.findById(7).get, DateTime.parse("2012-1-5"), Some("thor.pagan.god.hammer@blahblah.com"), Some("Ancient God"), Some("Sen code 01"))
+    Student(1, SchoolHelper.findById("SC1").get, Name("George", Some("Washington"), "DC"), "A", "M", AddressHelper.findById(3).get, DateTime.parse("2012-1-1"), Some("george.dc.washington@blahblah.com"), Some("White American"), Some("Sen code 01")),
+    Student(2, SchoolHelper.findById("SC1").get, Name("Neon", Some("Anderson"), "Matrix"), "A", "M", AddressHelper.findById(4).get, DateTime.parse("2012-1-2"), Some("leon.matrix.anderson@blahblah.com"), Some("White American"), Some("Sen code 01")),
+    Student(3, SchoolHelper.findById("SC2").get, Name("Lisa", Some("Butcher"), "Gamer"), "A", "F", AddressHelper.findById(5).get, DateTime.parse("2012-1-3"), Some("lisa.gamer.butcher@blahblah.com"), Some("Black American"), Some("Sen code 01")),
+    Student(4, SchoolHelper.findById("SC2").get, Name("Bhima", Some("Pandu"), "Mahabharata"), "A", "M", AddressHelper.findById(6).get, DateTime.parse("2012-1-4"), Some("bhima.mahabharata.pandu@blahblah.com"), Some("Ancient Indian"), Some("Sen code 01")),
+    Student(5, SchoolHelper.findById("SC2").get, Name("Thor", Some("Hammer"), "Pagan God"), "A", "M", AddressHelper.findById(7).get, DateTime.parse("2012-1-5"), Some("thor.pagan.god.hammer@blahblah.com"), Some("Ancient God"), Some("Sen code 01"))
   )
 
-  def findAll(school_id: Long): List[Student] = studentList.filter(_.school.school_id == school_id).toList
+  def findAll(school_id: String): List[Student] = studentList.filter(_.school.school_id == school_id).toList
 
-  def findById(student_id: Long, school_id: Long): Option[Student] = {
+  def findById(student_id: Long, school_id: String): Option[Student] = {
     SchoolHelper.findById(school_id) match {
       case None => None
       case Some(school) => studentList.find(s => s.student_id == student_id && s.school.school_id == school.school_id)
@@ -66,10 +67,10 @@ object StudentHelper {
     case None => Nil
   }
 
-  def addStudent(s: StudentRegistrationData, school_id: Long): Option[Student] = SchoolHelper.findById(school_id) match {
+  def addStudent(s: StudentRegistrationData, school_id: String): Option[Student] = SchoolHelper.findById(school_id) match {
     case None => None
     case Some(school) =>
-      val address = AddressHelper.addAddress(s.address)
+      val address = AddressHelper.manufactureAddress(s.address).get
       val student = Student(studentList.last.student_id + 1, school, s.name, "A", s.gender, address, s.dob, s.email, s.ethnicity, s.sen_code)
       studentList += student
       Some(student)

@@ -16,7 +16,7 @@
 
 package models.common.reference
 
-import org.joda.time.Hours
+import org.joda.time.{DateTime, Hours}
 
 /**
   * Created by pratimsc on 03/01/16.
@@ -33,8 +33,27 @@ object Reference {
     val HISTORICAL = "H"
   }
 
-  val genderList = Seq("M" -> "Male", "F" -> "Female")
+  object AddressType {
+    val OFFICE = "O"
+    val RESIDENTIAL = "R"
+  }
+
+  object Gender {
+    val MALE = "M"
+    val FEMALE = "F"
+  }
+
+  object GuardianStudentRelationship {
+    val WHITE_BRITISH = "WBRI"
+    val ASIAN_OR_BRITISH_ASIAN = "AIND"
+    val CHINESE = "CHNE"
+    val MIXED_WHITE_AND_ASIAN = "MWAS"
+  }
+
+  val genderList = Seq(Gender.MALE -> "Male", Gender.FEMALE -> "Female")
   val guardianStudentRelationshipList = Seq("GSR01" -> "Father", "GSR02" -> "Mother", "GSR03" -> "Grand Father", "GSR04" -> "Grand Mother", "GSR05" -> "Guardian")
   val ethnicityList = Seq("WBRI" -> "White-British", "AIND" -> "Asian/Asian British-Indian", "CHNE" -> "Chinese", "MWAS" -> "Mixed -White and Asian")
   val specialEducationNeedCodeList = Seq("N" -> "No special educational need", "EYA" -> "Early years / school action", "EYAP" -> "Early years action / school plus", "S" -> "Statement of SEN")
+
+  def businessDate = new DateTime()
 }

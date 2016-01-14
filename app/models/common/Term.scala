@@ -29,7 +29,7 @@ import scala.collection.mutable.MutableList
 /**
   * Created by pratimsc on 04/01/16.
   */
-case class Term(term_id: Long, school_id: Long, begin: DateTime, finish: DateTime, status: String)
+case class Term(term_id: Long, school_id: String, begin: DateTime, finish: DateTime, status: String)
 
 case class TermRegistrationData(begin: DateTime, finish: DateTime)
 
@@ -59,11 +59,11 @@ object TermHelper {
   val registerTermForm = Form(termFormMaping)
 
 
-  def findAllBySchool(school_id: Long): List[Term] = termList.filter(_.school_id == school_id).toList
+  def findAllBySchool(school_id: String): List[Term] = termList.filter(_.school_id == school_id).toList
 
-  def findById(term_id: Long, school_id: Long): Option[Term] = termList.find(t => (t.term_id == term_id && t.school_id == school_id))
+  def findById(term_id: Long, school_id: String): Option[Term] = termList.find(t => (t.term_id == term_id && t.school_id == school_id))
 
-  def addTerm(trd: TermRegistrationData, school_id: Long): Option[Term] = SchoolHelper.findById(school_id) match {
+  def addTerm(trd: TermRegistrationData, school_id: String): Option[Term] = SchoolHelper.findById(school_id) match {
     case None => None
     case Some(school) =>
 
@@ -74,7 +74,7 @@ object TermHelper {
   }
 
 
-  def purgeById(term_id: Long, school_id: Long): Boolean = {
+  def purgeById(term_id: Long, school_id: String): Boolean = {
     term_unique_id_count = 0
 
     val updatedTermList = termList.map { t =>

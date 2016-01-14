@@ -27,9 +27,9 @@ import scala.collection.mutable.MutableList
   * Created by pratimsc on 03/01/16.
   */
 //case class Timesheet()
-case class DailyTimesheet(timesheet_id: Long, term_id: Long, student_id: Long, school_id: Long, date: DateTime, recordedHours: Hours, status: String)
+case class DailyTimesheet(timesheet_id: Long, term_id: Long, student_id: Long, school_id: String, date: DateTime, recordedHours: Hours, status: String)
 
-case class WeeklyTimesheet(weekly_timesheet_id: Long, term_id: Long, student_id: Long, school_id: Long, startsOn: DateTime, endsOn: DateTime, recordedHours: List[DailyTimesheet], status: String)
+case class WeeklyTimesheet(weekly_timesheet_id: Long, term_id: Long, student_id: Long, school_id: String, startsOn: DateTime, endsOn: DateTime, recordedHours: List[DailyTimesheet], status: String)
 
 object TimesheetHelper {
 
@@ -41,7 +41,7 @@ object TimesheetHelper {
 
   val weeklyTimesheetList: MutableList[WeeklyTimesheet] = MutableList()
 
-  def findByIdAndSchool(timesheet_id: Long, school_id: Long): Option[WeeklyTimesheet] = {
+  def findByIdAndSchool(timesheet_id: Long, school_id: String): Option[WeeklyTimesheet] = {
     weeklyTimesheetList.find(e => (e.school_id == school_id && e.weekly_timesheet_id == timesheet_id))
   }
 
@@ -49,15 +49,15 @@ object TimesheetHelper {
     weeklyTimesheetList.filter(_.student_id == student_id).toList
   }
 
-  def findAllTimesheetsByTermAndSchool(term_id: Long, school_id: Long): List[WeeklyTimesheet] = {
+  def findAllTimesheetsByTermAndSchool(term_id: Long, school_id: String): List[WeeklyTimesheet] = {
     weeklyTimesheetList.filter(e => (e.school_id == school_id && e.term_id == term_id)).toList
   }
 
-  def findAllTimesheetsBySchool(school_id: Long): List[WeeklyTimesheet] = {
+  def findAllTimesheetsBySchool(school_id: String): List[WeeklyTimesheet] = {
     weeklyTimesheetList.filter(_.school_id == school_id).toList
   }
 
-  def populateTimesheet(t: Term, school_id: Long): List[DailyTimesheet] = {
+  def populateTimesheet(t: Term, school_id: String): List[DailyTimesheet] = {
 
     //Add 1 to include the finish date in the calendar also
     val duration: Int = Days.daysBetween(t.begin.toLocalDate, t.finish.toLocalDate).getDays + 1
@@ -81,7 +81,7 @@ object TimesheetHelper {
     dailyTimesheet.filter(_.term_id == t.term_id).toList
   }
 
-  def purgeTimesheet(t: Term, school_id: Long): Boolean = {
+  def purgeTimesheet(t: Term, school_id: String): Boolean = {
     val updatedTimesheets = dailyTimesheet.map { dts =>
       if (dts.term_id == t.term_id && dts.school_id == school_id) dts.copy(status = Reference.STATUS.DELETE)
       else dts
@@ -99,7 +99,7 @@ object TimesheetHelper {
   private def prepareWeeklyTimesheetFromDaily(): Unit = {
     weeklyTimesheetList.clear()
     weekly_timesheet_unique_id_count = 0
-    val groupedDailyTimesheets: Iterable[(Long, Long, Long, List[DailyTimesheet])] = dailyTimesheet.groupBy(dts => (dts.term_id, dts.student_id, dts.school_id)).map { e =>
+    val groupedDailyTimesheets: Iterable[(Long, Long, String, List[DailyTimesheet])] = dailyTimesheet.groupBy(dts => (dts.term_id, dts.student_id, dts.school_id)).map { e =>
       val dtsl = e._2.toList
       val status = "A"
       val splitTo7Days: List[List[DailyTimesheet]] = dtsl.foldRight(List[List[DailyTimesheet]]()) { (d, wl) =>

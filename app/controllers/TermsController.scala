@@ -28,20 +28,20 @@ import play.api.mvc.{Action, Controller}
   */
 class TermsController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
-  def findByIdAndSchool(term_id: Long, school_id: Long) = Action { implicit request =>
+  def findByIdAndSchool(term_id: Long, school_id: String) = Action { implicit request =>
     val term = TermHelper.findById(term_id, school_id)
     val school = SchoolHelper.findById(school_id)
     Ok(views.html.terms.TermDetailView(term, school))
   }
 
-  def findAllTimesheetsByTermAndSchool(term_id: Long, school_id: Long) = Action { implicit request =>
+  def findAllTimesheetsByTermAndSchool(term_id: Long, school_id: String) = Action { implicit request =>
     val weeklyTimesheets: List[WeeklyTimesheet] = TimesheetHelper.findAllTimesheetsByTermAndSchool(term_id, school_id)
     val school = SchoolHelper.findById(school_id)
     val term = TermHelper.findById(term_id, school_id)
     Ok(views.html.terms.TermTimesheetListView(weeklyTimesheets, term, school))
   }
 
-  def deleteByIdAndSchool(term_id: Long, school_id: Long) = Action { implicit request =>
+  def deleteByIdAndSchool(term_id: Long, school_id: String) = Action { implicit request =>
     val term = TermHelper.purgeById(term_id, school_id)
     val school = SchoolHelper.findById(school_id)
     Redirect(routes.SchoolsController.findAllTermsBySchool(school_id))
