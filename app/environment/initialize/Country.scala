@@ -19,7 +19,7 @@ package environment.initialize
 //Code for upoading the Country code to Orient db
 import java.io.File
 
-import org.maikalal.common.util.GenericHelper
+import org.maikalal.common.util.ArangodbDatabaseUtility
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.libs.ws._
@@ -47,7 +47,7 @@ object CountryInializer {
       "short_name_en" -> c.short_name_en,
       "status" -> "A"
     )
-    GenericHelper.databaseGraphApiVertexRequest("Country").post(data)
+    ArangodbDatabaseUtility.databaseGraphApiVertexRequest("Country").post(data)
   }
 
   def readDataFromCountryFile(countryFile: File): List[Country] = {

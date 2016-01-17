@@ -16,11 +16,41 @@
 
 package org.maikalal.common.util
 
+import play.api.Play
+import play.api.libs.ws.{WSAuthScheme, WSClient, WSRequest}
 
 /**
-  * Created by pratimsc on 16/01/16.
+  * Created by pratimsc on 10/01/16.
   */
 object ArangodbDatabaseUtility {
 
-  def createVertex(vertex: String) = ???
+  val user = Play.current.configuration.getString("arangodb.user").get
+  val password = Play.current.configuration.getString("arangodb.password").get
+  val graphUrl = Play.current.configuration.getString("arangodb.url.graph").get
+  val documentUrl = Play.current.configuration.getString("arangodb.url.document").get
+  val aqlQueryUrl = Play.current.configuration.getString("arangodb.url.aql.query").get
+  val cursorUrl = Play.current.configuration.getString("arangodb.url.aql.cursor").get
+
+  def databaseAPIRequest(url: String)(implicit ws: WSClient): WSRequest = {
+    ws.url(url)
+      .withHeaders("Connection" -> "Close", "Content-Type" -> "application/json")
+      .withAuth(user, password, WSAuthScheme.BASIC)
+      .withFollowRedirects(true)
+  }
+
+  def databaseGraphApiVertexRequest(vertex: String)(implicit ws: WSClient) =
+    databaseAPIRequest(s"${graphUrl}/vertex/${vertex}")
+
+  def databaseGraphApiEdgeRequest(edge: String)(implicit ws: WSClient) =
+    databaseAPIRequest(s"${graphUrl}/edge/${edge}")
+
+  def databaseGraphApiRequestWithVertexId(id: String)(implicit ws: WSClient) =
+    databaseAPIRequest(s"${graphUrl}/vertex/${id}")
+
+  def databaseDocumentApiRequestWithId(id: String)(implicit ws: WSClient) =
+    databaseAPIRequest(s"${documentUrl}/${id}")
+
+  def databaseAqlQuerries()(implicit ws: WSClient) = databaseAPIRequest(aqlQueryUrl)
+
+  def databaseCursor()(implicit ws: WSClient) = databaseAPIRequest(cursorUrl)
 }

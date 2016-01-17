@@ -23,7 +23,7 @@ import models.common._
 import models.common.reference.Reference
 import models.common.reference.Reference.DatabaseEdges
 import org.joda.time.DateTime
-import org.maikalal.common.util.GenericHelper
+import org.maikalal.common.util.ArangodbDatabaseUtility
 import play.api.Logger
 import play.api.data.Form
 import play.api.data.Forms._
@@ -127,7 +127,7 @@ object StudentHelper {
       case Some(school) =>
         val st_json: JsValue = Json.toJson(s).as[JsObject] +("status", JsString(Reference.STATUS.ACTIVE))
         Logger.debug(s"Adding student ->[${st_json}]")
-        GenericHelper.databaseGraphApiVertexRequest(Reference.DatabaseVertex.STUDENT).post(st_json).map { res =>
+        ArangodbDatabaseUtility.databaseGraphApiVertexRequest(Reference.DatabaseVertex.STUDENT).post(st_json).map { res =>
           val student_id = (res.json \ "vertex" \ "_id").as[String]
           Logger.debug(s"Id of the student added -> ${student_id}")
           Logger.debug(s"Creating an Edge between School and Student")
@@ -135,7 +135,7 @@ object StudentHelper {
             "_from" -> JsString(school_id),
             "_to" -> JsString(student_id)
           )
-          GenericHelper.databaseGraphApiEdgeRequest(DatabaseEdges.SCHOOL_ENROLLED_STUDENT).post(sc_st_edge)
+          ArangodbDatabaseUtility.databaseGraphApiEdgeRequest(DatabaseEdges.SCHOOL_ENROLLED_STUDENT).post(sc_st_edge)
           Some(student_id)
         }
       case None =>

@@ -19,7 +19,7 @@ package models
 import models.common.AddressHelper.{addressJsonReads, addressJsonWrites}
 import models.common.reference.Reference
 import models.common.{Address, AddressHelper}
-import org.maikalal.common.util.GenericHelper
+import org.maikalal.common.util.ArangodbDatabaseUtility
 import play.api.Logger
 import play.api.data.Forms._
 import play.api.data._
@@ -72,7 +72,7 @@ object SchoolHelper {
       """
         |FOR sc in schools FILTER sc.status != "D" RETURN sc
       """.stripMargin)
-    GenericHelper.databaseCursor.post(json).map { res =>
+    ArangodbDatabaseUtility.databaseCursor.post(json).map { res =>
       Logger.debug(s"The response data -> [${res.json}]")
       (res.json \ "result").validate[List[School]] match {
         case s: JsSuccess[List[School]] =>
@@ -87,7 +87,7 @@ object SchoolHelper {
   //def findById(school: Long): Option[School] = schoolList.find(_.school_id == school)
   def findById(school_id: String)(implicit ws: WSClient): Future[Option[School]] = {
     Logger.debug(s"Get data for school with id [${school_id}]")
-    GenericHelper.databaseDocumentApiRequestWithId(school_id)
+    ArangodbDatabaseUtility.databaseDocumentApiRequestWithId(school_id)
       .get().map { res2 =>
       res2.json.validate[School] match {
         case s: JsSuccess[School] =>
@@ -114,7 +114,7 @@ object SchoolHelper {
   def addSchool(s: SchoolRegistration)(implicit ws: WSClient): Future[Option[String]] = {
     val json: JsValue = Json.toJson(s).as[JsObject] +("status", JsString(Reference.STATUS.ACTIVE))
     Logger.debug(s"Adding School -> ${Json.prettyPrint(json)}")
-    GenericHelper.databaseGraphApiVertexRequest(Reference.DatabaseVertex.SCHOOL).post(json).map { res =>
+    ArangodbDatabaseUtility.databaseGraphApiVertexRequest(Reference.DatabaseVertex.SCHOOL).post(json).map { res =>
       val school_id: String = (res.json \ "vertex" \ "_id").as[String]
       Logger.debug(s"Id of the School added -> ${school_id}")
       Some(school_id)
