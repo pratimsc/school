@@ -21,54 +21,69 @@ import javax.inject._
 import models._
 import models.common._
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller}
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 /**
   * Created by pratimsc on 27/12/15.
   */
-class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
+class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws: WSClient) extends Controller with I18nSupport {
 
-  def findAll = Action { implicit request =>
-    Ok(views.html.schools.SchoolListView(SchoolHelper.findAll))
+  def findAll = Action.async { implicit request =>
+    SchoolHelper.findAll.map { schools =>
+      Ok(views.html.schools.SchoolListView(schools))
+    }
   }
 
-  def findById(school_id: String) = Action { implicit request =>
-    Ok(views.html.schools.SchoolDetailView(SchoolHelper.findById(school_id)))
+  def findById(school_id: String) = Action.async { implicit request =>
+    SchoolHelper.findById(school_id).map { school =>
+      Ok(views.html.schools.SchoolDetailView(school))
+    }
   }
 
-  def findAllStudentsBySchool(school_id: String) = Action { implicit request =>
-    val students = StudentHelper.findAll(school_id)
-    val school = SchoolHelper.findById(school_id)
-    //students.foreach(s => println(s"Students are [${s.name}]"))
-    Ok(views.html.schools.SchoolStudentListView(students, school))
+  def findAllStudentsBySchool(school_id: String) = Action.async { implicit request =>
+    SchoolHelper.findById(school_id).map { school =>
+      val students = StudentHelper.findAll(school_id)
+      //students.foreach(s => println(s"Students are [${s.name}]"))
+      Ok(views.html.schools.SchoolStudentListView(students, school))
+    }
   }
 
-  def findAllRatesBySchool(school_id: String) = Action { implicit request =>
-    val rates: List[Rate] = RateHelper.findAllRatesBySchool(school_id)
-    val school = SchoolHelper.findById(school_id)
-    Ok(views.html.schools.SchoolRatesListView(rates, school))
+  def findAllRatesBySchool(school_id: String) = Action.async { implicit request =>
+    SchoolHelper.findById(school_id).map { school =>
+      val rates: List[Rate] = RateHelper.findAllRatesBySchool(school_id)
+      Ok(views.html.schools.SchoolRatesListView(rates, school))
+    }
   }
 
-  def findAllGuardiansBySchool(school_id: String) = Action { implicit request =>
-    val guardians = GuardianHelper.findAllBySchool(school_id)
-    val school = SchoolHelper.findById(school_id)
-    Ok(views.html.schools.SchoolGuardianListView(guardians, school))
+  def findAllGuardiansBySchool(school_id: String) = Action.async { implicit request =>
+    SchoolHelper.findById(school_id).map { school =>
+      val guardians = GuardianHelper.findAllBySchool(school_id)
+      Ok(views.html.schools.SchoolGuardianListView(guardians, school))
+    }
   }
 
-  def findAllTermsBySchool(school_id: String) = Action { implicit request =>
-    val rates: List[Term] = TermHelper.findAllBySchool(school_id)
-    val school = SchoolHelper.findById(school_id)
-    Ok(views.html.schools.SchoolTermsListView(rates, school))
+  def findAllTermsBySchool(school_id: String) = Action.async { implicit request =>
+    SchoolHelper.findById(school_id).map { school =>
+      val rates: List[Term] = TermHelper.findAllBySchool(school_id)
+      Ok(views.html.schools.SchoolTermsListView(rates, school))
+    }
   }
 
-  def findAllWeeklyTimesheetBySchool(school_id: String) = Action { implicit request =>
-    val weeklyTimesheets: List[WeeklyTimesheet] = TimesheetHelper.findAllTimesheetsBySchool(school_id)
-    val school = SchoolHelper.findById(school_id)
-    Ok(views.html.schools.SchoolTimesheetListView(weeklyTimesheets, school))
+  def findAllWeeklyTimesheetBySchool(school_id: String) = Action.async { implicit request =>
+    SchoolHelper.findById(school_id).map { school =>
+      val weeklyTimesheets: List[WeeklyTimesheet] = TimesheetHelper.findAllTimesheetsBySchool(school_id)
+      Ok(views.html.schools.SchoolTimesheetListView(weeklyTimesheets, school))
+    }
   }
 
   /**
     * Displays a form for registering school
+    *
     * @return
     */
   def registerSchool = Action { implicit request =>
@@ -95,6 +110,7 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
 
   /**
     * After the form for registering a school is submitted, the school is actually registered.
+    *
     * @return
     */
   def addSchool = Action { implicit request =>
@@ -104,15 +120,17 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
         BadRequest(views.html.schools.AddSchool(formWithErrors))
       ,
       schoolRegistrationData => {
-        //Binding is successful. Got the actual value.
-        val school = models.SchoolHelper.addSchool(schoolRegistrationData)
-        Redirect(routes.SchoolsController.findAll())
-      }
-    )
+        //Binding is successful. Wait and get the actual value
+        Await.result(SchoolHelper.addSchool(schoolRegistrationData), Duration.Inf) match {
+          case Some(school_id) => Redirect(routes.SchoolsController.findById(school_id))
+          case None => BadRequest(views.html.schools.AddSchool(SchoolHelper.registerSchoolForm))
+        }
+      })
   }
 
   /**
     * After the form for registering a student is submitted, the student is registered with the school.
+    *
     * @param school_id
     * @return
     */
@@ -120,14 +138,17 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
     StudentHelper.registerStudentForm.bindFromRequest().fold(
       formsWithError => BadRequest(views.html.schools.AddSchoolStudent(formsWithError, school_id)),
       studentRegistrationData => {
-        val student = models.StudentHelper.addStudent(studentRegistrationData, school_id)
-        Redirect(routes.SchoolsController.findAllStudentsBySchool(school_id))
+        Await.result(StudentHelper.addStudent(studentRegistrationData, school_id), Duration.Inf) match {
+          case Some(student_id) => Redirect(routes.SchoolsController.findAllStudentsBySchool(school_id))
+          case None => BadRequest(views.html.schools.AddSchoolStudent(StudentHelper.registerStudentForm, school_id))
+        }
       }
     )
   }
 
   /**
     * After the form for registering a term is submitted, the student is registered with the school.
+    *
     * @param school_id
     * @return
     */
@@ -143,6 +164,7 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi) extends Controll
 
   /**
     * After the form for registering a rate is submitted, the rate is registered with the school.
+    *
     * @param school_id
     * @return
     */

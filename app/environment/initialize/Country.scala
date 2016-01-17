@@ -19,6 +19,7 @@ package environment.initialize
 //Code for upoading the Country code to Orient db
 import java.io.File
 
+import org.maikalal.common.util.GenericHelper
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.libs.ws._
@@ -38,23 +39,15 @@ object CountryInializer {
   case class Country(short_name_en: String, alpha_2_code: String, alpha_3_code: String, numeric_code: Int)
 
 
-  private def uploadCountry(c: Country, ws: WSClient) = {
+  private def uploadCountry(c: Country)(implicit ws: WSClient) = {
     val data = Json.obj(
-      "@class" -> "Country",
       "alpha_2_code" -> c.alpha_2_code,
       "alpha_3_code" -> c.alpha_3_code,
       "numeric_code" -> c.numeric_code,
       "short_name_en" -> c.short_name_en,
       "status" -> "A"
     )
-    val f: Future[WSResponse] = GenericHelper.databaseUploadUrl("Country", ws).post(data)
-    f onSuccess {
-      case response => println("Record created -> \n" + response.body)
-    }
-    f onFailure {
-      case t => print("An error has occurred -> \n" + t.getMessage)
-    }
-    f
+    GenericHelper.databaseGraphApiVertexRequest("Country").post(data)
   }
 
   def readDataFromCountryFile(countryFile: File): List[Country] = {
@@ -66,10 +59,10 @@ object CountryInializer {
     countries
   }
 
-  def uploadCountries(countryFile: File, ws: WSClient = NingWSClient()) = {
+  def uploadCountries(countryFile: File)(implicit ws: WSClient = NingWSClient()) = {
     //"/home/pratimsc/codes/learning/attend01/public/reference/world_countries.csv"
     val countries: List[Country] = readDataFromCountryFile(countryFile)
-    val result: List[Future[WSResponse]] = countries.map(uploadCountry(_, ws))
+    val result: List[Future[WSResponse]] = countries.map(uploadCountry(_))
     val f: Future[List[WSResponse]] = Future.sequence(result)
     f.onComplete {
       case Success(result) => ws.close()

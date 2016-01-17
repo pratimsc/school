@@ -19,9 +19,12 @@ package models.common
 import models.common.reference.Reference
 import models.{SchoolHelper, StudentHelper}
 import org.joda.time.{DateTime, Days, Hours}
+import play.api.libs.ws.WSClient
 
 import scala.collection.immutable.Iterable
 import scala.collection.mutable.MutableList
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 /**
   * Created by pratimsc on 03/01/16.
@@ -45,7 +48,7 @@ object TimesheetHelper {
     weeklyTimesheetList.find(e => (e.school_id == school_id && e.weekly_timesheet_id == timesheet_id))
   }
 
-  def findAllTimesheetsByStudent(student_id: Long): List[WeeklyTimesheet] = {
+  def findAllTimesheetsByStudent(student_id: String): List[WeeklyTimesheet] = {
     weeklyTimesheetList.filter(_.student_id == student_id).toList
   }
 
@@ -57,11 +60,11 @@ object TimesheetHelper {
     weeklyTimesheetList.filter(_.school_id == school_id).toList
   }
 
-  def populateTimesheet(t: Term, school_id: String): List[DailyTimesheet] = {
+  def populateTimesheet(t: Term, school_id: String)(implicit ws: WSClient): List[DailyTimesheet] = {
 
     //Add 1 to include the finish date in the calendar also
+    val school = Await.result(SchoolHelper.findById(school_id), Duration.Inf)
     val duration: Int = Days.daysBetween(t.begin.toLocalDate, t.finish.toLocalDate).getDays + 1
-    val school = SchoolHelper.findById(school_id)
     val students = StudentHelper.findAll(school_id)
     val dtsl: List[DailyTimesheet] = school match {
       case Some(sc) => for {

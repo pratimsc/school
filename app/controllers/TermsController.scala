@@ -21,29 +21,35 @@ import javax.inject.Inject
 import models.SchoolHelper
 import models.common.{TermHelper, TimesheetHelper, WeeklyTimesheet}
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller}
 
 /**
   * Created by pratimsc on 04/01/16.
   */
-class TermsController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
+class TermsController @Inject()(val messagesApi: MessagesApi, implicit val ws: WSClient) extends Controller with I18nSupport {
 
-  def findByIdAndSchool(term_id: Long, school_id: String) = Action { implicit request =>
-    val term = TermHelper.findById(term_id, school_id)
-    val school = SchoolHelper.findById(school_id)
-    Ok(views.html.terms.TermDetailView(term, school))
+  def findByIdAndSchool(term_id: Long, school_id: String) = Action.async { implicit request =>
+    SchoolHelper.findById(school_id).map { school =>
+      val term = TermHelper.findById(term_id, school_id)
+      Ok(views.html.terms.TermDetailView(term, school))
+    }
   }
 
-  def findAllTimesheetsByTermAndSchool(term_id: Long, school_id: String) = Action { implicit request =>
-    val weeklyTimesheets: List[WeeklyTimesheet] = TimesheetHelper.findAllTimesheetsByTermAndSchool(term_id, school_id)
-    val school = SchoolHelper.findById(school_id)
-    val term = TermHelper.findById(term_id, school_id)
-    Ok(views.html.terms.TermTimesheetListView(weeklyTimesheets, term, school))
+  def findAllTimesheetsByTermAndSchool(term_id: Long, school_id: String) = Action.async { implicit request =>
+    SchoolHelper.findById(school_id).map { school =>
+      val weeklyTimesheets: List[WeeklyTimesheet] = TimesheetHelper.findAllTimesheetsByTermAndSchool(term_id, school_id)
+
+      val term = TermHelper.findById(term_id, school_id)
+      Ok(views.html.terms.TermTimesheetListView(weeklyTimesheets, term, school))
+    }
   }
 
-  def deleteByIdAndSchool(term_id: Long, school_id: String) = Action { implicit request =>
-    val term = TermHelper.purgeById(term_id, school_id)
-    val school = SchoolHelper.findById(school_id)
-    Redirect(routes.SchoolsController.findAllTermsBySchool(school_id))
+  def deleteByIdAndSchool(term_id: Long, school_id: String) = Action.async { implicit request =>
+    SchoolHelper.findById(school_id).map { school =>
+      val term = TermHelper.purgeById(term_id, school_id)
+      Redirect(routes.SchoolsController.findAllTermsBySchool(school_id))
+    }
   }
 }

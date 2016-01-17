@@ -43,8 +43,8 @@
                             @StudentHelper.findById(wt.student_id, wt.school_id) match {
                                 case Some(s) => {
                                     <td>@wt.student_id</td>
-                                    <td>@s.name.last</td>
-                                    <td>@s.name.first</td>
+                                    <td>@s.student_name.last</td>
+                                    <td>@s.student_name.first</td>
                                 }
                                 case None => {
                                     <td colspan="3">@Messages("schools.detail.timesheet.weekly.nostudent")</td>

@@ -26,13 +26,13 @@ GET           /guardians/:guardian_id/schools                                   
 GET           /guardians/:guardian_id/students                                   controllers.GuardiansController.findAllStudentsByGuardian(guardian_id:Long)
 
 #Student related request
-GET           /schools/:school_id/students/:student_id                           controllers.StudentsController.findByIdAndSchool(student_id:Long,school_id:String)
-GET           /schools/:school_id/students/:student_id/guardians                 controllers.StudentsController.findAllGuardiansByStudent(student_id:Long,school_id:String)
-GET           /schools/:school_id/students/:student_id/guardians/register        controllers.StudentsController.registerGuardian(student_id:Long,school_id:String)
-GET           /schools/:school_id/students/:student_id/guardians/all             controllers.StudentsController.findAllGuardiansByStudent(student_id:Long,school_id:String)
-GET           /schools/:school_id/students/:student_id/rates                     controllers.StudentsController.findAllAppliedRates(student_id:Long, school_id:String)
-GET           /schools/:school_id/students/:student_id/rates/all                 controllers.StudentsController.findAllAppliedRates(student_id:Long, school_id:String)
-GET           /schools/:school_id/students/:student_id/timesheets                controllers.StudentsController.findAllTimesheetsByStudentAndSchool(student_id:Long, school_id:String)
+GET           /schools/:school_id/students/:student_id                           controllers.StudentsController.findByIdAndSchool(student_id:String,school_id:String)
+GET           /schools/:school_id/students/:student_id/guardians                 controllers.StudentsController.findAllGuardiansByStudent(student_id:String,school_id:String)
+GET           /schools/:school_id/students/:student_id/guardians/register        controllers.StudentsController.registerGuardian(student_id:String,school_id:String)
+GET           /schools/:school_id/students/:student_id/guardians/all             controllers.StudentsController.findAllGuardiansByStudent(student_id:String,school_id:String)
+GET           /schools/:school_id/students/:student_id/rates                     controllers.StudentsController.findAllAppliedRates(student_id:String, school_id:String)
+GET           /schools/:school_id/students/:student_id/rates/all                 controllers.StudentsController.findAllAppliedRates(student_id:String, school_id:String)
+GET           /schools/:school_id/students/:student_id/timesheets                controllers.StudentsController.findAllTimesheetsByStudentAndSchool(student_id:String, school_id:String)
 
 #Charges and Rebates related request
 GET           /schools/:school_id/rates                                          controllers.SchoolsController.findAllRatesBySchool(school_id:String)
@@ -57,9 +57,9 @@ POST          /schools                                                          
 POST          /schools/:school_id/students                                       controllers.SchoolsController.addStudent(school_id:String)
 POST          /schools/:school_id/rates                                          controllers.SchoolsController.addRate(school_id:String)
 POST          /schools/:school_id/terms                                          controllers.SchoolsController.addTerm(school_id:String)
-POST          /schools/:school_id/students/:student_id/guardians                 controllers.StudentsController.addGuardian(student_id:Long, school_id:String)
-POST          /schools/:school_id/students/:student_id/rates                     controllers.StudentsController.addRate(student_id:Long, school_id:String)
-POST          /schools/:school_id/students/:student_id/rebates                   controllers.StudentsController.addRebate(student_id:Long, school_id:String)
+POST          /schools/:school_id/students/:student_id/guardians                 controllers.StudentsController.addGuardian(student_id:String, school_id:String)
+POST          /schools/:school_id/students/:student_id/rates                     controllers.StudentsController.addRate(student_id:String, school_id:String)
+POST          /schools/:school_id/students/:student_id/rebates                   controllers.StudentsController.addRebate(student_id:String, school_id:String)
 POST          /guardians/:guardian_id/students/                                  controllers.GuardiansController.findAllStudentsByGuardian(guardian_id:Long)
 
 #All Update operations

@@ -19,7 +19,7 @@
 
             @StudentHelper.findById(wt.student_id, wt.school_id).map { st =>
                 <div id="tweekly_timesheet_student_summary">
-                    <label>Associated Student </label> @st.name.last @st.name.first
+                    <label>Associated Student </label> @st.student_name.last @st.student_name.first
                 <a class="btn btn-primary" href="@routes.SchoolsController.findById(st.school.school_id)" role="button">
                     View Student</a>
                 </div>

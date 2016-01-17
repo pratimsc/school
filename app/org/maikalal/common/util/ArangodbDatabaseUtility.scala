@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package environment.initialize
+package org.maikalal.common.util
 
-import play.api.libs.ws.{WSAuthScheme, WSClient}
 
 /**
-  * Created by pratimsc on 10/01/16.
+  * Created by pratimsc on 16/01/16.
   */
-object GenericHelper {
+object ArangodbDatabaseUtility {
 
-  val user = "admin"
-  val password = "admin"
-
-  def databaseUploadUrl(vertex: String, ws: WSClient) = {
-    ws.url(s"http://localhost:2480/document/chelford_preschool_01/${vertex}")
-      .withHeaders("Connection" -> "Close", "Content-Type" -> "application/json")
-      .withAuth(user, password, WSAuthScheme.BASIC)
-      .withFollowRedirects(true)
-  }
+  def createVertex(vertex: String) = ???
 }

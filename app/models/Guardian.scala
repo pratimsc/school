@@ -27,7 +27,7 @@ case class Guardian(guardian_id: Long, name: Name, address: Address, gender: Str
 
 case class GuardianStudentRelationShip(student: Student, relationship: String)
 
-case class GuardianRegistrationData(name: Name, address: AddressRegistrationData, gender: String, student_relationship: String, email: Option[String], national_insurance_number: Option[String])
+case class GuardianRegistrationData(name: Name, address: Address, gender: String, student_relationship: String, email: Option[String], national_insurance_number: Option[String])
 
 case class GuardianStudentRelationShipRegistrationData(school_id: String, student_id: Long, guardian_id: Long, relationship: String)
 
@@ -55,10 +55,10 @@ object GuardianHelper {
    * A non persistence storage for Schools
    */
   val guardianList = scala.collection.mutable.MutableList[Guardian](
-    Guardian(1, Name("Chocko", Some("Slaughter Man"), "Funny"), AddressHelper.findById(3).get, "M", "A", Some("chocko.funny@blahblah.com"), Some("NI12345781"), List(GuardianStudentRelationShip(StudentHelper.findById(1, "SC1").get, "Father"), GuardianStudentRelationShip(StudentHelper.findById(3, "SC2").get, "Father"))),
-    Guardian(2, Name("Lisa", Some("Pussy Cat"), "Angry"), AddressHelper.findById(3).get, "F", "A", Some("lisa.angry@blahblah.com"), Some("NI12345782"), List(GuardianStudentRelationShip(StudentHelper.findById(3, "SC2").get, "Mother"))),
-    Guardian(3, Name("Mocho", None, "Cobbler"), AddressHelper.findById(3).get, "M", "A", Some("mocho.cobbler@blahblah.com"), Some("NI1234578"), List(GuardianStudentRelationShip(StudentHelper.findById(2, "SC1").get, "Father"))),
-    Guardian(4, Name("Zhinga", Some("Mohanlal"), "Baghmare"), AddressHelper.findById(3).get, "M", "A", Some("zhinga.bhagmare@blahblah.com"), Some("NI1234578"), List(GuardianStudentRelationShip(StudentHelper.findById(4, "SC2").get, "Father"), GuardianStudentRelationShip(StudentHelper.findById(5, "SC2").get, "Grand Father")))
+    Guardian(1, Name("Chocko", Some("Slaughter Man"), "Funny"), AddressHelper.addressList.get(3).get, "M", "A", Some("chocko.funny@blahblah.com"), Some("NI12345781"), List(GuardianStudentRelationShip(StudentHelper.findById(1, "SC1").get, "Father"), GuardianStudentRelationShip(StudentHelper.findById(3, "SC2").get, "Father"))),
+    Guardian(2, Name("Lisa", Some("Pussy Cat"), "Angry"), AddressHelper.addressList.get(3).get, "F", "A", Some("lisa.angry@blahblah.com"), Some("NI12345782"), List(GuardianStudentRelationShip(StudentHelper.findById(3, "SC2").get, "Mother"))),
+    Guardian(3, Name("Mocho", None, "Cobbler"), AddressHelper.addressList.get(3).get, "M", "A", Some("mocho.cobbler@blahblah.com"), Some("NI1234578"), List(GuardianStudentRelationShip(StudentHelper.findById(2, "SC1").get, "Father"))),
+    Guardian(4, Name("Zhinga", Some("Mohanlal"), "Baghmare"), AddressHelper.addressList.get(3).get, "M", "A", Some("zhinga.bhagmare@blahblah.com"), Some("NI1234578"), List(GuardianStudentRelationShip(StudentHelper.findById(4, "SC2").get, "Father"), GuardianStudentRelationShip(StudentHelper.findById(5, "SC2").get, "Grand Father")))
   )
 
   /*
@@ -86,10 +86,9 @@ object GuardianHelper {
 
   //guardian_id: Long, name: Name, address: Address, gender: String, email: Option[String], national_insurance_number: Option[String], students: List[GuardianStudentRelationShip]
 
-  def addGuardian(g: GuardianRegistrationData, student_id: Long, school_id: String): Guardian = {
-    val address = AddressHelper.manufactureAddress(g.address).get
+  def addGuardian(g: GuardianRegistrationData, student_id: String, school_id: String): Guardian = {
     val student = StudentHelper.findById(student_id, school_id).get
-    val guardian = Guardian(guardianList.last.guardian_id + 1, g.name, address, g.gender, "A", g.email, g.national_insurance_number, List(GuardianStudentRelationShip(student, g.student_relationship)))
+    val guardian = Guardian(guardianList.last.guardian_id + 1, g.name, g.address, g.gender, "A", g.email, g.national_insurance_number, List(GuardianStudentRelationShip(student, g.student_relationship)))
     guardianList += guardian
     guardian
   }

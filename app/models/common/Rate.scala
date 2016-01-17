@@ -17,13 +17,15 @@
 package models.common
 
 import models._
-import models.common.time.{ONCE, Frequency, WEEKLY}
+import models.common.time.{Frequency, ONCE, WEEKLY}
 import org.joda.money.{CurrencyUnit, Money}
 import org.joda.time._
 import org.joda.time.format.ISODateTimeFormat
 
 import scala.collection.immutable.List
 import scala.collection.mutable.MutableList
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 /**
   * Created by pratimsc on 01/01/16.
@@ -92,19 +94,19 @@ object RateHelper {
   )
 
   val schoolRatesList: MutableList[(School, Rate)] = MutableList(
-    (SchoolHelper.schoolList.get(0).get, ratesList.get(0).get),
-    (SchoolHelper.schoolList.get(1).get, ratesList.get(1).get),
-    (SchoolHelper.schoolList.get(0).get, ratesList.get(2).get),
-    (SchoolHelper.schoolList.get(1).get, ratesList.get(3).get),
-    (SchoolHelper.schoolList.get(0).get, ratesList.get(4).get),
-    (SchoolHelper.schoolList.get(1).get, ratesList.get(5).get),
-    (SchoolHelper.schoolList.get(0).get, ratesList.get(6).get),
-    (SchoolHelper.schoolList.get(1).get, ratesList.get(7).get),
-    (SchoolHelper.schoolList.get(0).get, ratesList.get(8).get),
-    (SchoolHelper.schoolList.get(1).get, ratesList.get(9).get),
-    (SchoolHelper.schoolList.get(1).get, ratesList.get(10).get),
-    (SchoolHelper.schoolList.get(1).get, ratesList.get(11).get),
-    (SchoolHelper.schoolList.get(1).get, ratesList.get(12).get)
+    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(0).get),
+    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(1).get),
+    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(2).get),
+    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(3).get),
+    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(4).get),
+    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(5).get),
+    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(6).get),
+    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(7).get),
+    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(8).get),
+    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(9).get),
+    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(10).get),
+    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(11).get),
+    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(12).get)
   )
 
   val studentRatesList: MutableList[RateAppliedToStudent] = MutableList(
@@ -123,9 +125,9 @@ object RateHelper {
 
   def findAllRatesBySchool(school_id: String): List[Rate] = schoolRatesList.filter(_._1.school_id == school_id).map(_._2).toList
 
-  def findAllRatesByStudent(student_id: Long): List[Rate] = studentRatesList.filter(_.student.student_id == student_id).map(_.rate).toList
+  def findAllRatesByStudent(student_id: String): List[Rate] = studentRatesList.filter(_.student.student_id == student_id).map(_.rate).toList
 
-  def findAllAppliedRatesByStudent(student_id: Long): List[RateAppliedToStudent] = studentRatesList.filter(_.student.student_id == student_id).toList
+  def findAllAppliedRatesByStudent(student_id: String): List[RateAppliedToStudent] = studentRatesList.filter(_.student.student_id == student_id).toList
 
   def findAllSchoolsByRate(rate_id: Long): List[School] = schoolRatesList.groupBy(_._1).map(_._1).toList
 

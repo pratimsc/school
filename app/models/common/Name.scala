@@ -17,6 +17,9 @@
 package models.common
 
 import play.api.data.Forms._
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Writes._
+import play.api.libs.json.{Writes, _}
 
 /**
   * Created by pratimsc on 30/12/15.
@@ -24,6 +27,18 @@ import play.api.data.Forms._
 case class Name(first: String, middle: Option[String], last: String)
 
 object NameHelper {
+
+  implicit val nameJsonWrites: Writes[Name] = (
+    (__ \ "first").write[String] and
+      (__ \ "middle").writeNullable[String] and
+      (__ \ "last").write[String]
+    ) (unlift(Name.unapply))
+
+  implicit val nameJsonReads: Reads[Name] = (
+    (__ \ "first").read[String] and
+      (__ \ "middle").readNullable[String] and
+      (__ \ "last").read[String]
+    ) (Name.apply _)
 
   val nameMapping = mapping(
     "first" -> nonEmptyText(maxLength = Char.MaxValue),

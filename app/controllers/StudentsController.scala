@@ -29,35 +29,35 @@ import play.api.mvc.{Action, Controller}
 class StudentsController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
 
-  def findByIdAndSchool(student_id: Long, school_id: String) = Action { implicit request =>
+  def findByIdAndSchool(student_id: String, school_id: String) = Action { implicit request =>
     val student = StudentHelper.findById(student_id, school_id)
     //student.map(s => println(s"[${s.student_id}]"))
     Ok(views.html.students.StudentDetailView(student))
   }
 
-  def findAllGuardiansByStudent(student_id: Long, school_id: String) = Action { implicit request =>
+  def findAllGuardiansByStudent(student_id: String, school_id: String) = Action { implicit request =>
     val guardians = GuardianHelper.findAllByStudent(student_id)
     val student = StudentHelper.findById(student_id, school_id)
     Ok(views.html.students.StudentGuardianListView(guardians, student))
   }
 
-  def findAllAppliedRates(student_id: Long, school_id: String) = Action { implicit request =>
+  def findAllAppliedRates(student_id: String, school_id: String) = Action { implicit request =>
     val rates = RateHelper.findAllAppliedRatesByStudent(student_id)
     val student = StudentHelper.findById(student_id, school_id)
     Ok(views.html.students.StudentRateListView(rates, student))
   }
 
-  def findAllTimesheetsByStudentAndSchool(student_id: Long, school_id: String) = Action { implicit request =>
+  def findAllTimesheetsByStudentAndSchool(student_id: String, school_id: String) = Action { implicit request =>
     val weeklyTimesheets = TimesheetHelper.findAllTimesheetsByStudent(student_id)
     val student = StudentHelper.findById(student_id, school_id)
     Ok(views.html.students.StudentTimesheetListView(weeklyTimesheets, student))
   }
 
-  def registerGuardian(student_id: Long, school_id: String) = Action { implicit request =>
+  def registerGuardian(student_id: String, school_id: String) = Action { implicit request =>
     Ok(views.html.students.AddStudentGuardian(GuardianHelper.registerGuardianForm, student_id, school_id))
   }
 
-  def addGuardian(student_id: Long, school_id: String) = Action { implicit request =>
+  def addGuardian(student_id: String, school_id: String) = Action { implicit request =>
     GuardianHelper.registerGuardianForm.bindFromRequest().fold(
       formWithErrors =>
         //Binding failure. Retrieve the form containing error
@@ -72,8 +72,8 @@ class StudentsController @Inject()(val messagesApi: MessagesApi) extends Control
   }
 
 
-  def addRate(student: Long, school: String) = TODO
+  def addRate(student_id: String, school_id: String) = TODO
 
-  def addRebate(student: Long, school: String) = TODO
+  def addRebate(student_id: String, school_id: String) = TODO
 
 }

@@ -22,8 +22,12 @@ import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import play.api.data.Form
 import play.api.data.Forms._
+import play.api.libs.ws.WSClient
+import play.api.libs.ws.ning.NingWSClient
 
 import scala.collection.mutable.MutableList
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 
 /**
@@ -46,6 +50,7 @@ object TermHelper {
     Term(6, SchoolHelper.schoolList.get(1).get.school_id, initialDate.plusWeeks(13 + 13), initialDate.plusWeeks(13 + 13 + 12).plusDays(6), "A")
   )
   //nitialize all termsheets
+  implicit val ws = NingWSClient()
   val tsl = termList.map(t => TimesheetHelper.populateTimesheet(t, t.school_id))
 
   //val schoolTermList: scala.collection.mutable.Map[Long, MutableList[Term]] = scala.collection.mutable.Map((SchoolHelper.schoolList.get(0).get.school_id -> termList),
@@ -63,7 +68,7 @@ object TermHelper {
 
   def findById(term_id: Long, school_id: String): Option[Term] = termList.find(t => (t.term_id == term_id && t.school_id == school_id))
 
-  def addTerm(trd: TermRegistrationData, school_id: String): Option[Term] = SchoolHelper.findById(school_id) match {
+  def addTerm(trd: TermRegistrationData, school_id: String)(implicit ws: WSClient): Option[Term] = Await.result(SchoolHelper.findById(school_id), Duration.Inf) match {
     case None => None
     case Some(school) =>
 

@@ -16,15 +16,16 @@
 
 package models.common
 
-import org.maikalal.common.util.DatabaseUtility
 import play.api.data.Forms._
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 /**
   * Created by pratimsc on 29/12/15.
   */
-case class Address(address_id: Long, first_line: Option[String], second_line: Option[String], city: Option[String], county: Option[String], country: String, zip_code: String)
+case class Address(first_line: Option[String], second_line: Option[String], city: Option[String], county: Option[String], country: String, zip_code: String)
 
-case class AddressRegistrationData(first_line: Option[String], second_line: Option[String], city: Option[String], county: Option[String], country: String, zip_code: String)
+//case class AddressRegistrationData(first_line: Option[String], second_line: Option[String], city: Option[String], county: Option[String], country: String, zip_code: String)
 
 
 object AddressHelper {
@@ -32,26 +33,14 @@ object AddressHelper {
    * A non persistence storage for Address
    */
   var addressList = scala.collection.mutable.MutableList[Address](
-    Address(1, Some("1st Avenue"), Some("Second Avenue"), Some("Maya City"), Some("Gondura County"), "United Kindom", "UK11 99MB"),
-    Address(2, Some("1st Road"), Some("Second Road"), Some("Boga City"), Some("Mejo County"), "United Kindom", "UK11 99KK"),
-    Address(3, Some("Add 3 first road"), Some("Add 3 Second Road"), Some("Boga City"), Some("Mejo County"), "United Kindom", "UK11 99KK"),
-    Address(4, Some("Add 4 first Road"), Some("Second Road"), Some("Boga City"), Some("Student County"), "United Kindom", "UK11 99KK"),
-    Address(5, Some("Add 5 1st Road"), Some("Second Road"), Some("Boga City"), Some("Student County"), "United Kindom", "UK11 99KK"),
-    Address(6, Some("Add 6 1st Road"), Some("Second Road"), Some("Boga City"), Some("Student County"), "United Kindom", "UK11 99KK"),
-    Address(7, Some("Add 7 1st Road"), Some("Second Road"), Some("Boga City"), Some("Student County"), "United Kindom", "UK11 99KK")
+    Address(Some("1st Avenue"), Some("Second Avenue"), Some("Maya City"), Some("Gondura County"), "United Kindom", "UK11 99MB"),
+    Address(Some("1st Road"), Some("Second Road"), Some("Boga City"), Some("Mejo County"), "United Kindom", "UK11 99KK"),
+    Address(Some("Add 3 first road"), Some("Add 3 Second Road"), Some("Boga City"), Some("Mejo County"), "United Kindom", "UK11 99KK"),
+    Address(Some("Add 4 first Road"), Some("Second Road"), Some("Boga City"), Some("Student County"), "United Kindom", "UK11 99KK"),
+    Address(Some("Add 5 1st Road"), Some("Second Road"), Some("Boga City"), Some("Student County"), "United Kindom", "UK11 99KK"),
+    Address(Some("Add 6 1st Road"), Some("Second Road"), Some("Boga City"), Some("Student County"), "United Kindom", "UK11 99KK"),
+    Address(Some("Add 7 1st Road"), Some("Second Road"), Some("Boga City"), Some("Student County"), "United Kindom", "UK11 99KK")
   )
-
-  def findAll: List[Address] = addressList.toList
-
-  def findById(address_id: Long): Option[Address] = addressList.find(_.address_id == address_id)
-
-  def manufactureAddress(a: AddressRegistrationData): Option[Address] = DatabaseUtility.getUniqueAddressId match {
-    case Some(address_id) =>
-      val address = Address(address_id, a.first_line, a.second_line, a.city, a.county, a.country, a.zip_code)
-      addressList += address
-      Some(address)
-    case None => None
-  }
 
   /*
   * Some helper functions for operations on address
@@ -64,5 +53,23 @@ object AddressHelper {
     "county" -> optional(text(maxLength = Char.MaxValue)),
     "country" -> nonEmptyText(maxLength = Char.MaxValue),
     "zip_code" -> nonEmptyText(minLength = 6, maxLength = Char.MaxValue)
-  )(AddressRegistrationData.apply)(AddressRegistrationData.unapply)
+  )(Address.apply)(Address.unapply)
+
+  implicit val addressJsonWrites: Writes[Address] = (
+    (JsPath \ "first_line").writeNullable[String] and
+      (JsPath \ "second_line").writeNullable[String] and
+      (JsPath \ "city").writeNullable[String] and
+      (JsPath \ "county").writeNullable[String] and
+      (JsPath \ "country").write[String] and
+      (JsPath \ "zip_code").write[String]
+    ) (unlift(Address.unapply))
+
+  implicit val addressJsonReads: Reads[Address] = (
+    (JsPath \ "first_line").readNullable[String] and
+      (JsPath \ "second_line").readNullable[String] and
+      (JsPath \ "city").readNullable[String] and
+      (JsPath \ "county").readNullable[String] and
+      (JsPath \ "country").read[String] and
+      (JsPath \ "zip_code").read[String]
+    ) (Address.apply _)
 }
