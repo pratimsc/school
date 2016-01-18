@@ -1,9 +1,9 @@
 @import org.maikalal.common.util.DateUtility
 
-@(st: Option[Student])(implicit messages: Messages)
+@(st: Option[Student], sc: Option[School])(implicit messages: Messages)
 
-@st match {
-    case Some(student) => {
+@(st, sc) match {
+    case (Some(student), Some(school)) => {
         <div id="student_detail">
             <div>
                 <p>
@@ -17,9 +17,11 @@
             </div>
 
             <div id="student_school_summary">
-                <label>Associated School </label> @student.school.school_name
-                <a class="btn btn-primary" href="@routes.SchoolsController.findById(student.school.school_id)" role="button">View School</a>
+                <label>Associated School </label> @school.school_name
+                <a class="btn btn-primary" href="@routes.SchoolsController.findById(school.school_id)" role="button">
+                    View School</a>
             </div>
+
             <div id="student_address">
                 <label>Student Address</label>
                 <address>
@@ -55,15 +57,15 @@
 
             <div id="student_permitted_actions">
                 <div id="student_permitted_actions_view">
-                    <a class="btn btn-primary" href="@routes.StudentsController.findAllGuardiansByStudent(student.student_id, student.school.school_id)" role="button">Guardians</a>
-                    <a class="btn btn-primary" href="@routes.StudentsController.findAllAppliedRates(student.student_id, student.school.school_id)" role="button">Charges/Rebates</a>
-                    <a class="btn btn-primary" href="@routes.StudentsController.findAllTimesheetsByStudentAndSchool(student.student_id, student.school.school_id)" role="button">Time Sheets</a>
+                    <a class="btn btn-primary" href="@routes.StudentsController.findAllGuardiansByStudent(student.student_id, school.school_id)" role="button">Guardians</a>
+                    <a class="btn btn-primary" href="@routes.StudentsController.findAllAppliedRates(student.student_id, school.school_id)" role="button">Charges/Rebates</a>
+                    <a class="btn btn-primary" href="@routes.StudentsController.findAllTimesheetsByStudentAndSchool(student.student_id, school.school_id)" role="button">Time Sheets</a>
                 </div>
                 <div id="student_permitted_actions_update">
                     <a class="btn btn-warning" href="#" role="button">Edit</a>
                 </div>
                 <div id="student_permitted_actions_add">
-                    <a class="btn btn-primary" href="@routes.StudentsController.registerGuardian(student.student_id, student.school.school_id)" role="button">Add Guardian</a>
+                    <a class="btn btn-primary" href="@routes.StudentsController.registerGuardian(student.student_id, school.school_id)" role="button">Add Guardian</a>
                     <a class="btn btn-default" href="#" role="button">Add Time Sheets</a>
                     <a class="btn btn-default" href="#" role="button">Apply Rates</a>
                     <a class="btn btn-default" href="#" role="button">Apply Rebates</a>
@@ -71,7 +73,7 @@
             </div>
         </div>
     }
-    case None => {
+    case _ => {
         <div>@Messages("schools.students.detail.nodata")</div>
     }
 

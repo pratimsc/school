@@ -9,9 +9,9 @@
 @form(action = routes.StudentsController.addGuardian(student_id, school_id), 'class -> "form-horizontal") {
 
     <div class="form-group">
-        @inputText(addGuardianForm("guardian_name.first"), '_label -> "First Name", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
-        @inputText(addGuardianForm("guardian_name.last"), '_label -> "Last Name", 'required -> "required", 'tabindex -> "2", 'class -> "form-control", '_showConstraints -> false)
-        @inputText(addGuardianForm("guardian_name.middle"), '_label -> "Middle Name", 'tabindex -> "3", 'class -> "form-control", 'class -> "form-control", '_showConstraints -> false)
+        @inputText(addGuardianForm("name.first"), '_label -> "First Name", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
+        @inputText(addGuardianForm("name.last"), '_label -> "Last Name", 'required -> "required", 'tabindex -> "2", 'class -> "form-control", '_showConstraints -> false)
+        @inputText(addGuardianForm("name.middle"), '_label -> "Middle Name", 'tabindex -> "3", 'class -> "form-control", 'class -> "form-control", '_showConstraints -> false)
     </div>
 
     <div class="form-group">
@@ -38,12 +38,12 @@
 
     <div class="form-group">
         <label> Guardian Address</label>
-        @inputText(addGuardianForm("guardian_address.first_line"), '_label -> "Line 1", 'tabindex -> "7", '_showConstraints -> false)
-        @inputText(addGuardianForm("guardian_address.second_line"), '_label -> "Line 2", 'tabindex -> "8", '_showConstraints -> false)
-        @inputText(addGuardianForm("guardian_address.city"), '_label -> "City/Village", 'tabindex -> "9", '_showConstraints -> false)
-        @inputText(addGuardianForm("guardian_address.county"), '_label -> "County", 'tabindex -> "10", '_showConstraints -> false)
-        @inputText(addGuardianForm("guardian_address.country"), '_label -> "Country", 'tabindex -> "11", 'required -> "required", '_showConstraints -> false)
-        @inputText(addGuardianForm("guardian_address.zip_code"), '_label -> "Pin/Zip Code", 'tabindex -> "12", 'required -> "required", '_showConstraints -> false)
+        @inputText(addGuardianForm("address.first_line"), '_label -> "Line 1", 'tabindex -> "7", '_showConstraints -> false)
+        @inputText(addGuardianForm("address.second_line"), '_label -> "Line 2", 'tabindex -> "8", '_showConstraints -> false)
+        @inputText(addGuardianForm("address.city"), '_label -> "City/Village", 'tabindex -> "9", '_showConstraints -> false)
+        @inputText(addGuardianForm("address.county"), '_label -> "County", 'tabindex -> "10", '_showConstraints -> false)
+        @inputText(addGuardianForm("address.country"), '_label -> "Country", 'tabindex -> "11", 'required -> "required", '_showConstraints -> false)
+        @inputText(addGuardianForm("address.zip_code"), '_label -> "Pin/Zip Code", 'tabindex -> "12", 'required -> "required", '_showConstraints -> false)
     </div>
 
     <a class="btn btn-primary" href="@routes.StudentsController.findByIdAndSchool(student_id, school_id)" role="button">

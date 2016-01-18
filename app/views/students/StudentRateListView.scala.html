@@ -1,10 +1,10 @@
 @import models.common.RateAppliedToStudent
 
-@(rl: List[RateAppliedToStudent], student: Option[Student])(implicit messages: Messages)
+@(rl: List[RateAppliedToStudent], student: Option[Student], school: Option[School])(implicit messages: Messages)
 
 @views.html.common.nuggets.head("Student Rate List View")
 
-@views.html.students.nuggets.detailStudent(student)
+@views.html.students.nuggets.detailStudent(student, school)
 
 @views.html.rates.nuggets.listRatesAppliedToStudent(rl)
 

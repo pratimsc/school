@@ -17,7 +17,7 @@
 package models.common
 
 import models.common.reference.Reference
-import models.{SchoolHelper, StudentHelper}
+import models.{School, Student, SchoolHelper, StudentHelper}
 import org.joda.time.{DateTime, Days, Hours}
 import play.api.libs.ws.WSClient
 
@@ -30,9 +30,9 @@ import scala.concurrent.duration.Duration
   * Created by pratimsc on 03/01/16.
   */
 //case class Timesheet()
-case class DailyTimesheet(timesheet_id: Long, term_id: Long, student_id: Long, school_id: String, date: DateTime, recordedHours: Hours, status: String)
+case class DailyTimesheet(timesheet_id: Long, term_id: Long, student_id: String, school_id: String, date: DateTime, recordedHours: Hours, status: String)
 
-case class WeeklyTimesheet(weekly_timesheet_id: Long, term_id: Long, student_id: Long, school_id: String, startsOn: DateTime, endsOn: DateTime, recordedHours: List[DailyTimesheet], status: String)
+case class WeeklyTimesheet(weekly_timesheet_id: Long, term_id: Long, student_id: String, school_id: String, startsOn: DateTime, endsOn: DateTime, recordedHours: List[DailyTimesheet], status: String)
 
 object TimesheetHelper {
 
@@ -63,9 +63,9 @@ object TimesheetHelper {
   def populateTimesheet(t: Term, school_id: String)(implicit ws: WSClient): List[DailyTimesheet] = {
 
     //Add 1 to include the finish date in the calendar also
-    val school = Await.result(SchoolHelper.findById(school_id), Duration.Inf)
+    val school: Option[School] = Await.result(SchoolHelper.findById(school_id), Duration.Inf)
     val duration: Int = Days.daysBetween(t.begin.toLocalDate, t.finish.toLocalDate).getDays + 1
-    val students = StudentHelper.findAll(school_id)
+    val students: List[Student] = Await.result(StudentHelper.findAllBySchool(school_id), Duration.Inf)
     val dtsl: List[DailyTimesheet] = school match {
       case Some(sc) => for {
         st <- students
@@ -102,7 +102,7 @@ object TimesheetHelper {
   private def prepareWeeklyTimesheetFromDaily(): Unit = {
     weeklyTimesheetList.clear()
     weekly_timesheet_unique_id_count = 0
-    val groupedDailyTimesheets: Iterable[(Long, Long, String, List[DailyTimesheet])] = dailyTimesheet.groupBy(dts => (dts.term_id, dts.student_id, dts.school_id)).map { e =>
+    val groupedDailyTimesheets: Iterable[(Long, String, String, List[DailyTimesheet])] = dailyTimesheet.groupBy(dts => (dts.term_id, dts.student_id, dts.school_id)).map { e =>
       val dtsl = e._2.toList
       val status = "A"
       val splitTo7Days: List[List[DailyTimesheet]] = dtsl.foldRight(List[List[DailyTimesheet]]()) { (d, wl) =>

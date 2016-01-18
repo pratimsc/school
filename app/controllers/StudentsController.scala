@@ -19,56 +19,91 @@ package controllers
 import javax.inject.Inject
 
 import models.common.{RateHelper, TimesheetHelper}
-import models.{GuardianHelper, StudentHelper}
+import models._
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller}
+
+import scala.concurrent.{Future, Await}
+import scala.concurrent.duration.Duration
 
 /**
   * Created by pratimsc on 27/12/15.
   */
-class StudentsController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
+class StudentsController @Inject()(val messagesApi: MessagesApi, implicit val ws: WSClient) extends Controller with I18nSupport {
 
-
-  def findByIdAndSchool(student_id: String, school_id: String) = Action { implicit request =>
-    val student = StudentHelper.findById(student_id, school_id)
-    //student.map(s => println(s"[${s.student_id}]"))
-    Ok(views.html.students.StudentDetailView(student))
+  def findByIdAndSchool(student_id: String, school_id: String) = Action.async { implicit request =>
+    val sc = SchoolHelper.findById(school_id)
+    val st = StudentHelper.findByIdAndSchool(student_id, school_id)
+    for {
+      school <- sc
+      student <- st
+    } yield
+      Ok(views.html.students.StudentDetailView(student, school))
   }
 
-  def findAllGuardiansByStudent(student_id: String, school_id: String) = Action { implicit request =>
-    val guardians = GuardianHelper.findAllByStudent(student_id)
-    val student = StudentHelper.findById(student_id, school_id)
-    Ok(views.html.students.StudentGuardianListView(guardians, student))
-  }
 
-  def findAllAppliedRates(student_id: String, school_id: String) = Action { implicit request =>
-    val rates = RateHelper.findAllAppliedRatesByStudent(student_id)
-    val student = StudentHelper.findById(student_id, school_id)
-    Ok(views.html.students.StudentRateListView(rates, student))
-  }
-
-  def findAllTimesheetsByStudentAndSchool(student_id: String, school_id: String) = Action { implicit request =>
-    val weeklyTimesheets = TimesheetHelper.findAllTimesheetsByStudent(student_id)
-    val student = StudentHelper.findById(student_id, school_id)
-    Ok(views.html.students.StudentTimesheetListView(weeklyTimesheets, student))
-  }
-
-  def registerGuardian(student_id: String, school_id: String) = Action { implicit request =>
-    Ok(views.html.students.AddStudentGuardian(GuardianHelper.registerGuardianForm, student_id, school_id))
-  }
-
-  def addGuardian(student_id: String, school_id: String) = Action { implicit request =>
-    GuardianHelper.registerGuardianForm.bindFromRequest().fold(
-      formWithErrors =>
-        //Binding failure. Retrieve the form containing error
-        BadRequest(views.html.students.AddStudentGuardian(formWithErrors, student_id, school_id))
-      ,
-      guardianRegistratonData => {
-        //Binding got successful
-        val guardian = GuardianHelper.addGuardian(guardianRegistratonData, student_id, school_id)
-        Redirect(routes.StudentsController.findAllGuardiansByStudent(student_id, school_id))
+  def findAllGuardiansByStudent(student_id: String, school_id: String) = Action.async {
+    implicit request =>
+      val gu: Future[List[Guardian]] = GuardianHelper.findAllByStudent(student_id)
+      val sc: Future[Option[School]] = SchoolHelper.findById(school_id)
+      val st: Future[Option[Student]] = StudentHelper.findByIdAndSchool(student_id, school_id)
+      for {
+        school <- sc
+        student <- st
+        guardians <- gu
+      } yield {
+        school.map(sc => println(s"School after adding guardian is ${sc}"))
+        student.map(st => println(s"Student after adding guardian is ${st}"))
+        Ok(views.html.students.StudentGuardianListView(guardians, student, school))
       }
-    )
+  }
+
+  def findAllAppliedRates(student_id: String, school_id: String) = Action.async {
+    implicit request =>
+      val rates = RateHelper.findAllAppliedRatesByStudent(student_id)
+      val sc = SchoolHelper.findById(school_id)
+      val st = StudentHelper.findByIdAndSchool(student_id, school_id)
+      for {
+        school <- sc
+        student <- st
+      } yield
+        Ok(views.html.students.StudentRateListView(rates, student, school))
+  }
+
+  def findAllTimesheetsByStudentAndSchool(student_id: String, school_id: String) = Action.async {
+    implicit request =>
+      val weeklyTimesheets = TimesheetHelper.findAllTimesheetsByStudent(student_id)
+      val sc = SchoolHelper.findById(school_id)
+      val st = StudentHelper.findByIdAndSchool(student_id, school_id)
+      for {
+        school <- sc
+        student <- st
+      } yield
+        Ok(views.html.students.StudentTimesheetListView(weeklyTimesheets, student, school))
+  }
+
+  def registerGuardian(student_id: String, school_id: String) = Action {
+    implicit request =>
+      Ok(views.html.students.AddStudentGuardian(GuardianHelper.registerGuardianForm, student_id, school_id))
+  }
+
+  def addGuardian(student_id: String, school_id: String) = Action {
+    implicit request =>
+      GuardianHelper.registerGuardianForm.bindFromRequest().fold(
+        formWithErrors =>
+          //Binding failure. Retrieve the form containing error
+          BadRequest(views.html.students.AddStudentGuardian(formWithErrors, student_id, school_id))
+        ,
+        guardianRegistratonData => {
+          //Binding got successful
+          Await.result(GuardianHelper.addGuardian(guardianRegistratonData, student_id, school_id), Duration.Inf) match {
+            case Some(guardian_id) => Redirect(routes.StudentsController.findAllGuardiansByStudent(student_id, school_id))
+            case None => BadRequest(views.html.students.AddStudentGuardian(GuardianHelper.registerGuardianForm, student_id, school_id))
+          }
+        }
+      )
   }
 
 

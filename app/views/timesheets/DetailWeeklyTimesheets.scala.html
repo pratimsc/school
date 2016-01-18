@@ -3,92 +3,92 @@
 @(wts: Option[WeeklyTimesheet], school: Option[School])(implicit messages: Messages)
 
 @views.html.common.nuggets.head("Weeklt Timesheet Detail View")
-
+@*
 <div id="weekly_timesheet_detail_view" class="weekly_timesheet_detail_view">
-    @school.map { sc =>
-        <div id="tweekly_timesheet_school_summary">
-            <label>Associated School </label> @sc.school_name
-        <a class="btn btn-primary" href="@routes.SchoolsController.findAllWeeklyTimesheetBySchool(sc.school_id)" role="button">
-            View School</a>
-        </div>
-    }
+@school.map { sc =>
+<div id="tweekly_timesheet_school_summary">
+<label>Associated School </label> @sc.school_name
+<a class="btn btn-primary" href="@routes.SchoolsController.findAllWeeklyTimesheetBySchool(sc.school_id)" role="button">
+View School</a>
+</div>
+}
 
-    @wts match {
-        case Some(wt) => {
+@wts match {
+case Some(wt) => {
 
-
-            @StudentHelper.findById(wt.student_id, wt.school_id).map { st =>
-                <div id="tweekly_timesheet_student_summary">
-                    <label>Associated Student </label> @st.student_name.last @st.student_name.first
-                <a class="btn btn-primary" href="@routes.SchoolsController.findById(st.school.school_id)" role="button">
-                    View Student</a>
-                </div>
-            }
-            @TermHelper.findById(wt.term_id, wt.school_id).map { t =>
-                <div id="tweekly_timesheet_term_summary">
-                    <div>
-                        <label>Term Id </label> @t.term_id
-                    </div>
-
-                    <div id="term_period">
-                        <label>Start Date</label> @org.maikalal.common.util.DateUtility.fommattedDate(t.begin)
-                        <label>End Date</label> @org.maikalal.common.util.DateUtility.fommattedDate(t.finish)
-                    </div>
-                    <div>
-                        <a class="btn btn-primary" href="@routes.TermsController.findByIdAndSchool(t.term_id, t.school_id)" role="button">
-                            View Term</a>
-                    </div>
-                </div>
-            }
-
-            <div id="weekly_timesheet_detail" class="weekly_timesheet_detail">
-
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th rowspan="3">Time Id</th>
-                            <th rowspan="3">Week Id</th>
-                            <th rowspan="3">Week Range</th>
-                            <th rowspan="1" colspan="7">Recorded Time</th>
-                            <th rowspan="3">Status</th>
-                            <th rowspan="3">Actions</th>
-                    <tr>
-                        <tr>
-                            <th>Monday</th>
-                            <th>Tuesday</th>
-                            <th>Wednesday</th>
-                            <th>Thursday</th>
-                            <th>Friday</th>
-                            <th>Saturday</th>
-                            <th>Sunday</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                        <tr>
-                            <td>@wt.weekly_timesheet_id</td>
-                            <td>@wt.startsOn.weekyear().get() - @wt.startsOn.weekOfWeekyear().get()</td>
-                            <td>@wt.startsOn.toLocalDate to @wt.endsOn.toLocalDate</td>
-                            @wt.recordedHours.map { dt =>
-                                <td>@dt.recordedHours.getHours @dt.recordedHours.getFieldType</td>
-                            }
-                            <td>@wt.status</td>
-                            <td>
-                                <a class="btn btn-success" href="#" role="button"> View</a>
-                                @if(wt.status.equalsIgnoreCase("S")) {
-                                    <a class="btn btn-success" href="#" role="button"> Submit</a>
-                                }
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        }
-        case None => {
-            @Messages("schools.timesheet.weekly.nodata")
-        }
-    }
+@StudentHelper.findByIdAndSchool(wt.student_id, wt.school_id).map(_.get).map { st =>
+<div id="tweekly_timesheet_student_summary">
+<label>Associated Student </label> @st.student_name.last @st.student_name.first
+<a class="btn btn-primary" href="@routes.SchoolsController.findById(school.get.school_id)" role="button">
+View Student</a>
+</div>
+}
+@TermHelper.findById(wt.term_id, wt.school_id).map { t =>
+<div id="tweekly_timesheet_term_summary">
+<div>
+<label>Term Id </label> @t.term_id
 </div>
 
+<div id="term_period">
+<label>Start Date</label> @org.maikalal.common.util.DateUtility.fommattedDate(t.begin)
+<label>End Date</label> @org.maikalal.common.util.DateUtility.fommattedDate(t.finish)
+</div>
+<div>
+<a class="btn btn-primary" href="@routes.TermsController.findByIdAndSchool(t.term_id, t.school_id)" role="button">
+View Term</a>
+</div>
+</div>
+}
+
+<div id="weekly_timesheet_detail" class="weekly_timesheet_detail">
+
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th rowspan="3">Time Id</th>
+<th rowspan="3">Week Id</th>
+<th rowspan="3">Week Range</th>
+<th rowspan="1" colspan="7">Recorded Time</th>
+<th rowspan="3">Status</th>
+<th rowspan="3">Actions</th>
+<tr>
+<tr>
+<th>Monday</th>
+<th>Tuesday</th>
+<th>Wednesday</th>
+<th>Thursday</th>
+<th>Friday</th>
+<th>Saturday</th>
+<th>Sunday</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>@wt.weekly_timesheet_id</td>
+<td>@wt.startsOn.weekyear().get() - @wt.startsOn.weekOfWeekyear().get()</td>
+<td>@wt.startsOn.toLocalDate to @wt.endsOn.toLocalDate</td>
+@wt.recordedHours.map { dt =>
+<td>@dt.recordedHours.getHours @dt.recordedHours.getFieldType</td>
+}
+<td>@wt.status</td>
+<td>
+<a class="btn btn-success" href="#" role="button"> View</a>
+@if(wt.status.equalsIgnoreCase("S")) {
+<a class="btn btn-success" href="#" role="button"> Submit</a>
+}
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+}
+case None => {
+@Messages("schools.timesheet.weekly.nodata")
+}
+}
+</div>
+
+*@
 
 @views.html.common.nuggets.body_scripts()

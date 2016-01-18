@@ -2,52 +2,53 @@
 @(appRates: List[RateAppliedToStudent])(implicit messages: Messages)
 
 <div id="student_list" class="student_list">
+@*
+@appRates match {
 
-    @appRates match {
+case Nil => {
+<div> @Messages("schools.students.detail.applied.rates.nodata")</div>
+}
 
-        case Nil => {
-            <div> @Messages("schools.students.detail.applied.rates.nodata")</div>
-        }
-
-        case h :: t => {
-            <table class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>Id</th>
-                        <th>Code</th>
-                        <th>Description</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Applied Since</th>
-                        <th>Applied Until</th>
-                        <th>Applied Recurrence</th>
-                        <th>Frequency</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                case class RateAppliedToStudent(student: Student, rate: Rate, status: String, since: DateTime, until: Option[DateTime], count: Option[Long], frequency: Frequency)
-                <tbody>
-                @appRates.map { appRate =>
-                    <tr>
-                        <td> @appRate.rate.rate_id </td>
-                        <td> @appRate.rate.code </td>
-                        <td>@appRate.rate.description</td>
-                        <td>@appRate.rate.chargeOrRebate</td>
-                        <td>@appRate.status</td>
-                        <td>@appRate.since</td>
-                        <td>@appRate.until.getOrElse(Messages("schools.students.detail.applied.rates.until.infinity"))</td>
-                        <td>@appRate.count.getOrElse(Messages("schools.students.detail.applied.rates.count.none"))</td>
-                        <td>@appRate.frequency</td>
-                        <td>
-                            <a class="btn btn-default" href="#" role="button">
-                                Edit </a>
-                            <a class="btn btn-success" href="@routes.RatesController.findRateById(appRate.rate.rate_id)" role="button">
-                                View Rate Detail</a>
-                        </td>
-                    </tr>
-                }
-                </tbody>
-            </table>
-        }
-    }
+case h :: t => {
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th>Id</th>
+<th>Code</th>
+<th>Description</th>
+<th>Type</th>
+<th>Status</th>
+<th>Applied Since</th>
+<th>Applied Until</th>
+<th>Applied Recurrence</th>
+<th>Frequency</th>
+<th>Actions</th>
+</tr>
+</thead>
+case class RateAppliedToStudent(student: Student, rate: Rate, status: String, since: DateTime, until: Option[DateTime], count: Option[Long], frequency: Frequency)
+<tbody>
+@appRates.map { appRate =>
+<tr>
+<td> @appRate.rate.rate_id </td>
+<td> @appRate.rate.code </td>
+<td>@appRate.rate.description</td>
+<td>@appRate.rate.chargeOrRebate</td>
+<td>@appRate.status</td>
+<td>@appRate.since</td>
+<td>@appRate.until.getOrElse(Messages("schools.students.detail.applied.rates.until.infinity"))</td>
+<td>@appRate.count.getOrElse(Messages("schools.students.detail.applied.rates.count.none"))</td>
+<td>@appRate.frequency</td>
+<td>
+<a class="btn btn-default" href="#" role="button">
+Edit </a>
+<a class="btn btn-success" href="@routes.RatesController.findRateById(appRate.rate.rate_id)" role="button">
+View Rate Detail</a>
+</td>
+</tr>
+}
+</tbody>
+</table>
+}
+}
 </div>
+*@

@@ -20,36 +20,48 @@ import javax.inject.Inject
 
 import models.{GuardianHelper, SchoolHelper, StudentHelper}
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller}
 
 /**
   * Created by pratimsc on 31/12/15.
   */
-class GuardiansController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
+class GuardiansController @Inject()(val messagesApi: MessagesApi, implicit val ws: WSClient) extends Controller with I18nSupport {
 
-  def findByIdAndSchool(guardian_id: Long, school_id: String) = Action { implicit request =>
-    val guardian = GuardianHelper.findByIdAndSchool(guardian_id, school_id)
-    Ok(views.html.guardians.GuardianDetailView(guardian))
+  def findByIdAndSchool(guardian_id: String, school_id: String) = Action.async { implicit request =>
+    GuardianHelper.findByIdAndSchool(guardian_id, school_id).map { guardian =>
+      Ok(views.html.guardians.GuardianDetailView(guardian))
+    }
   }
 
-  def findById(guardian_id: Long) = Action { implicit request =>
-    val guardian = GuardianHelper.findById(guardian_id)
-    Ok(views.html.guardians.GuardianDetailView(guardian))
+  def findById(guardian_id: String) = Action.async { implicit request =>
+    GuardianHelper.findById(guardian_id).map { guardian =>
+      Ok(views.html.guardians.GuardianDetailView(guardian))
+    }
   }
 
-  def findAllStudentsByGuardian(guardian_id: Long) = Action { implicit request =>
-    val students = StudentHelper.findAllStudentsByGuardianId(guardian_id)
-    val guardian = GuardianHelper.findById(guardian_id)
-    Ok(views.html.guardians.GuardianStudentListView(students, guardian))
+  def findAllStudentsByGuardian(guardian_id: String) = Action.async { implicit request =>
+    val st = StudentHelper.findAllStudentsByGuardianId(guardian_id)
+    val gu = GuardianHelper.findById(guardian_id)
+    for {
+      students <- st
+      guardian <- gu
+    } yield
+      Ok(views.html.guardians.GuardianStudentListView(students, guardian))
   }
 
-  def findAllSchoolByGuardian(guardian_id: Long) = Action { implicit request =>
-    val schools = SchoolHelper.findAllSchoolsByGuardianId(guardian_id)
-    val guardian = GuardianHelper.findById(guardian_id)
-    Ok(views.html.guardians.GuardianSchoolListView(schools, guardian))
+  def findAllSchoolByGuardian(guardian_id: String) = Action.async { implicit request =>
+    val sc = SchoolHelper.findAllSchoolsByGuardianId(guardian_id)
+    val gu = GuardianHelper.findById(guardian_id)
+    for {
+      schools <- sc
+      guardian <- gu
+    } yield
+      Ok(views.html.guardians.GuardianSchoolListView(schools, guardian))
   }
 
-  def updateGuardian(guardian_id: Long) = Action { implicit request =>
+  def updateGuardian(guardian_id: String) = Action { implicit request =>
     Ok("")
   }
 }

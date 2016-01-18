@@ -1,9 +1,9 @@
 @import models.common.Rate
 
-@(rate: Option[Rate])(implicit messages: Messages)
+@(rate: Option[Rate], school: Option[School])(implicit messages: Messages)
 
     @views.html.common.nuggets.head("Charges and Rebate Detail View")
 
-    @views.html.rates.nuggets.detailRate(rate)
+@views.html.rates.nuggets.detailRate(rate, school)
 
 @views.html.common.nuggets.body_scripts()

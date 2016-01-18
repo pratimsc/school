@@ -16,8 +16,9 @@
 
 package org.maikalal.common.util
 
-import play.api.Play
+import play.api.libs.json.{JsObject, JsString, Json}
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSRequest}
+import play.api.{Logger, Play}
 
 /**
   * Created by pratimsc on 10/01/16.
@@ -53,4 +54,10 @@ object ArangodbDatabaseUtility {
   def databaseAqlQuerries()(implicit ws: WSClient) = databaseAPIRequest(aqlQueryUrl)
 
   def databaseCursor()(implicit ws: WSClient) = databaseAPIRequest(cursorUrl)
+
+  def aqlToCursorQueryAsJsonRequetBody(aql: String): JsObject = {
+    val aql_json = Json.obj("query" -> JsString(aql))
+    Logger.debug(s"AQL Query ->\n [${aql_json}]")
+    aql_json
+  }
 }

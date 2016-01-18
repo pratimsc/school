@@ -9,9 +9,9 @@
 @form(action = routes.SchoolsController.addStudent(school_id), 'class -> "form-horizontal") {
 
     <div class="form-group">
-        @inputText(addStudentForm("student_name.first"), '_label -> "First Name", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
-        @inputText(addStudentForm("student_name.last"), '_label -> "Last Name", 'required -> "required", 'tabindex -> "2", 'class -> "form-control", '_showConstraints -> false)
-        @inputText(addStudentForm("student_name.middle"), '_label -> "Middle Name", 'tabindex -> "3", 'class -> "form-control", 'class -> "form-control", '_showConstraints -> false)
+        @inputText(addStudentForm("name.first"), '_label -> "First Name", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
+        @inputText(addStudentForm("name.last"), '_label -> "Last Name", 'required -> "required", 'tabindex -> "2", 'class -> "form-control", '_showConstraints -> false)
+        @inputText(addStudentForm("name.middle"), '_label -> "Middle Name", 'tabindex -> "3", 'class -> "form-control", 'class -> "form-control", '_showConstraints -> false)
     </div>
 
     <div class="form-group">
@@ -46,12 +46,12 @@
 
     <div class="form-group">
         <label> Guardian Address</label>
-        @inputText(addStudentForm("student_address.first_line"), '_label -> "Line 1", 'tabindex -> "8", '_showConstraints -> false)
-        @inputText(addStudentForm("student_address.second_line"), '_label -> "Line 2", 'tabindex -> "9", '_showConstraints -> false)
-        @inputText(addStudentForm("student_address.city"), '_label -> "City/Village", 'tabindex -> "0", '_showConstraints -> false)
-        @inputText(addStudentForm("student_address.county"), '_label -> "County", 'tabindex -> "11", '_showConstraints -> false)
-        @inputText(addStudentForm("student_address.country"), '_label -> "Country", 'tabindex -> "12", 'required -> "required", '_showConstraints -> false)
-        @inputText(addStudentForm("student_address.zip_code"), '_label -> "Pin/Zip Code", 'tabindex -> "13", 'required -> "required", '_showConstraints -> false)
+        @inputText(addStudentForm("address.first_line"), '_label -> "Line 1", 'tabindex -> "8", '_showConstraints -> false)
+        @inputText(addStudentForm("address.second_line"), '_label -> "Line 2", 'tabindex -> "9", '_showConstraints -> false)
+        @inputText(addStudentForm("address.city"), '_label -> "City/Village", 'tabindex -> "0", '_showConstraints -> false)
+        @inputText(addStudentForm("address.county"), '_label -> "County", 'tabindex -> "11", '_showConstraints -> false)
+        @inputText(addStudentForm("address.country"), '_label -> "Country", 'tabindex -> "12", 'required -> "required", '_showConstraints -> false)
+        @inputText(addStudentForm("address.zip_code"), '_label -> "Pin/Zip Code", 'tabindex -> "13", 'required -> "required", '_showConstraints -> false)
     </div>
 
     <a class="btn btn-primary" href="@routes.SchoolsController.findAllStudentsBySchool(school_id)" role="button">

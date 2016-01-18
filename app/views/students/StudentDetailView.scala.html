@@ -1,7 +1,7 @@
-@(student: Option[Student])(implicit messages: Messages)
+@(student: Option[Student], school: Option[School])(implicit messages: Messages)
 
     @views.html.common.nuggets.head("Student Detail View")
 
-    @views.html.students.nuggets.detailStudent(student)
+@views.html.students.nuggets.detailStudent(student, school)
 
     @views.html.common.nuggets.body_scripts()

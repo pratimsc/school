@@ -1,11 +1,11 @@
 @import models.common.Rate
 
-@(sl: List[Student], rate: Option[Rate])(implicit messages: Messages)
+@(sl: List[Student], rate: Option[Rate], sc: Option[School])(implicit messages: Messages)
 
 @views.html.common.nuggets.head("Rate Student List View")
 
-@views.html.rates.nuggets.detailRate(rate)
+@views.html.rates.nuggets.detailRate(rate, sc)
 
-    @views.html.students.nuggets.listStudents(sl)
+@views.html.students.nuggets.listStudents(sl, sc)
 
 @views.html.common.nuggets.body_scripts()

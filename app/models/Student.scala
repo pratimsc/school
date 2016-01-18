@@ -16,12 +16,11 @@
 
 package models
 
-import models.SchoolHelper.{schoolJsonReads, schoolJsonWrites}
+import models.SchoolHelper.schoolJsonReads
 import models.common.AddressHelper.{addressJsonReads, addressJsonWrites}
 import models.common.NameHelper.{nameJsonReads, nameJsonWrites}
 import models.common._
 import models.common.reference.Reference
-import models.common.reference.Reference.DatabaseEdges
 import org.joda.time.DateTime
 import org.maikalal.common.util.ArangodbDatabaseUtility
 import play.api.Logger
@@ -32,24 +31,20 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Writes._
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
-import play.api.libs.ws.ning.NingWSClient
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
 
-case class Student(student_id: String, school: School, student_name: Name, status: String, gender: String, address: Address, dob: DateTime, email: Option[String], ethnicity: Option[String], sen_code: Option[String])
+case class Student(student_id: String, student_name: Name, status: String, gender: String, address: Address, dob: DateTime, email: Option[String], ethnicity: Option[String], sen_code: Option[String])
 
 case class StudentRegistrationData(student_name: Name, gender: String, address: Address, dob: DateTime, email: Option[String], ethnicity: Option[String], sen_code: Option[String])
 
 object StudentHelper {
 
-  implicit val ws: WSClient = NingWSClient()
-
   val studentFormMapping = mapping(
-    "student_name" -> NameHelper.nameMapping,
+    "name" -> NameHelper.nameMapping,
     "gender" -> text(minLength = 1, maxLength = 1),
-    "student_address" -> AddressHelper.addressFormMapping,
+    "address" -> AddressHelper.addressFormMapping,
     "date_of_birth" -> jodaDate("yyyy-MM-dd"),
     "email" -> optional(email),
     "ethnicity" -> optional(text),
@@ -59,7 +54,7 @@ object StudentHelper {
   val registerStudentForm = Form(studentFormMapping)
 
   implicit val studentRegDataJsonWrites: Writes[StudentRegistrationData] = (
-    (__ \ "student_name").write[Name] and
+    (__ \ "name").write[Name] and
       (__ \ "gender").write[String] and
       (__ \ "address").write[Address] and
       (__ \ "dob").write[DateTime] and
@@ -70,9 +65,8 @@ object StudentHelper {
 
 
   implicit val studentJsonWrites: Writes[Student] = (
-    (__ \ "student_id").write[String] and
-      (__ \ "school").write[School] and
-      (__ \ "student_name").write[Name] and
+    (__ \ "_id").write[String] and
+      (__ \ "name").write[Name] and
       (__ \ "status").write[String] and
       (__ \ "gender").write[String] and
       (__ \ "address").write[Address] and
@@ -84,8 +78,7 @@ object StudentHelper {
 
   implicit val studentJsonReads: Reads[Student] = (
     (__ \ "_id").read[String] and
-      (__ \ "school").read[School] and
-      (__ \ "student_name").read[Name] and
+      (__ \ "name").read[Name] and
       (__ \ "status").read[String] and
       (__ \ "gender").read[String] and
       (__ \ "address").read[Address] and
@@ -95,51 +88,97 @@ object StudentHelper {
       (__ \ "sen_code").readNullable[String]
     ) (Student.apply _)
 
-  /*
-   * A non persistence storage for Schools
-   */
-  val studentList = scala.collection.mutable.MutableList[Student](
-    Student("1", Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, Name("George", Some("Washington"), "DC"), "A", "M", AddressHelper.addressList.get(3).get, DateTime.parse("2012-1-1"), Some("george.dc.washington@blahblah.com"), Some("White American"), Some("Sen code 01")),
-    Student("2", Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, Name("Neon", Some("Anderson"), "Matrix"), "A", "M", AddressHelper.addressList.get(4).get, DateTime.parse("2012-1-2"), Some("leon.matrix.anderson@blahblah.com"), Some("White American"), Some("Sen code 01")),
-    Student("3", Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, Name("Lisa", Some("Butcher"), "Gamer"), "A", "F", AddressHelper.addressList.get(5).get, DateTime.parse("2012-1-3"), Some("lisa.gamer.butcher@blahblah.com"), Some("Black American"), Some("Sen code 01")),
-    Student("4", Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, Name("Bhima", Some("Pandu"), "Mahabharata"), "A", "M", AddressHelper.addressList.get(6).get, DateTime.parse("2012-1-4"), Some("bhima.mahabharata.pandu@blahblah.com"), Some("Ancient Indian"), Some("Sen code 01")),
-    Student("5", Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, Name("Thor", Some("Hammer"), "Pagan God"), "A", "M", AddressHelper.addressList.get(7).get, DateTime.parse("2012-1-5"), Some("thor.pagan.god.hammer@blahblah.com"), Some("Ancient God"), Some("Sen code 01"))
-  )
+  implicit val studentSchoolComboJsonReads: Reads[Tuple2[Student, School]] = (
+    (__ \ "student").read[Student] and
+      (__ \ "school").read[School]
+    ) tupled
 
-  def findAll(school_id: String): List[Student] = studentList.filter(_.school.school_id == school_id).toList
+  def findAllBySchool(school_id: String)(implicit ws: WSClient): Future[List[Student]] = {
+    val aql =
+      s"""
+         |FOR sc in schools
+         |filter sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
+         |FOR e in enrolled
+         |filter e._from == sc._id
+         |FOR st in students
+         |filter st._id == e._to && st.status != "${Reference.STATUS.DELETE}"
+         |return st
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"List of the students based on the school [${school_id}] is -> ${res.json}")
+      val students: List[Student] = (res.json \ "result").as[List[Student]]
+      students
+    }
+  }
 
-  def findById(student_id: String, school_id: String): Future[Nothing] = SchoolHelper.findById(school_id).flatMap { sc =>
-    sc match {
-      case Some(school) => None[Student]
-      case None => None[Student]
+  def findByIdAndSchool(student_id: String, school_id: String)(implicit ws: WSClient): Future[Option[Student]] = {
+    val aql =
+      s"""
+         |FOR sc in schools
+         |filter sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
+         |FOR e in enrolled
+         |filter e._from == sc._id
+         |FOR st in students
+         |filter st._id == e._to && st._id == "${student_id}"  && st.status != "${Reference.STATUS.DELETE}"
+         |return st
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"Details of the student based on the id [${student_id}] is -> ${res.json}")
+      val students: List[Student] = (res.json \ "result").as[List[Student]]
+      students match {
+        case h :: t =>
+          Logger.debug(s"Details of the student extracted ${h}")
+          Some(h)
+        case _ => None
+      }
     }
   }
 
 
-  def findAllStudentsByGuardianId(guardian_id: Long): List[Student] = GuardianHelper.findById(guardian_id) match {
-    case Some(guardian) =>
-      guardian.students.map(_.student)
-    case None => Nil
+  def findAllStudentsByGuardianId(guardian_id: String)(implicit ws: WSClient): Future[List[(Student, School)]] = {
+    val aql =
+      s"""
+         |FOR gu in guardians
+         |filter gu._id == "${guardian_id}"  && gu.status != "${Reference.STATUS.DELETE}"
+         |FOR e1 in related_to
+         |filter e1._to == gu._id
+         |FOR st in students
+         |filter st._id == e1._from && st.status != "${Reference.STATUS.DELETE}"
+         |FOR e2 in enrolled
+         |filter e2._to == st._id
+         |FOR sc in schools
+         |filter sc._id == e2._from && sc.status != "${Reference.STATUS.DELETE}"
+         |return {"student":st,"school":sc}
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"List of the students based on the id [${guardian_id}] is -> ${res.json}")
+      val students: List[(Student, School)] = (res.json \ "result").as[List[(Student, School)]]
+      students
+    }
   }
 
-  def addStudent(s: StudentRegistrationData, school_id: String)(implicit ws: WSClient): Future[Option[String]] = SchoolHelper.findById(school_id).flatMap { sc =>
-    sc match {
-      case Some(school) =>
-        val st_json: JsValue = Json.toJson(s).as[JsObject] +("status", JsString(Reference.STATUS.ACTIVE))
-        Logger.debug(s"Adding student ->[${st_json}]")
-        ArangodbDatabaseUtility.databaseGraphApiVertexRequest(Reference.DatabaseVertex.STUDENT).post(st_json).map { res =>
-          val student_id = (res.json \ "vertex" \ "_id").as[String]
-          Logger.debug(s"Id of the student added -> ${student_id}")
-          Logger.debug(s"Creating an Edge between School and Student")
-          val sc_st_edge = Json.obj(
-            "_from" -> JsString(school_id),
-            "_to" -> JsString(student_id)
-          )
-          ArangodbDatabaseUtility.databaseGraphApiEdgeRequest(DatabaseEdges.SCHOOL_ENROLLED_STUDENT).post(sc_st_edge)
-          Some(student_id)
-        }
-      case None =>
-        Future.successful(None)
+  def addStudent(s: StudentRegistrationData, school_id: String)(implicit ws: WSClient): Future[Some[String]] = {
+    val st_json: JsValue = Json.toJson(s).as[JsObject] +("status", JsString(Reference.STATUS.ACTIVE))
+    val aql =
+      s"""
+         |FOR sc in schools
+         |  FILTER sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
+         |  INSERT ${st_json} in students
+         |  let st = NEW
+         |  INSERT {
+         |  "_from":sc._id,
+         |  "_to":st._id
+         |  }in enrolled
+         |  let rel = NEW
+         |return {"student":st, "school":sc, "relation":rel}
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"Details of the student added ->${Json.prettyPrint(res.json)}")
+      val result = (res.json \ "result") (0)
+      val st_json = result \ "student"
+      val sc_json = result \ "school"
+      val student_id = (st_json \ "_id").as[String]
+      Some(student_id)
     }
   }
 }

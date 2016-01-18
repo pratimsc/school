@@ -25,6 +25,7 @@ import play.api.data.Forms._
 import play.api.libs.ws.WSClient
 import play.api.libs.ws.ning.NingWSClient
 
+import scala.collection.mutable
 import scala.collection.mutable.MutableList
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -41,17 +42,19 @@ object TermHelper {
 
   private val initialDate = DateTime.parse("20160104", ISODateTimeFormat.basicDate)
   var term_unique_id_count = 6
-  val termList = MutableList(
-    Term(1, SchoolHelper.schoolList.get(0).get.school_id, initialDate, initialDate.plusWeeks(12).plusDays(6), "A"),
-    Term(2, SchoolHelper.schoolList.get(0).get.school_id, initialDate.plusWeeks(13), initialDate.plusWeeks(13 + 12).plusDays(6), "A"),
-    Term(3, SchoolHelper.schoolList.get(0).get.school_id, initialDate.plusWeeks(13 + 13), initialDate.plusWeeks(13 + 13 + 12).plusDays(6), "A"),
-    Term(4, SchoolHelper.schoolList.get(1).get.school_id, initialDate, initialDate.plusWeeks(12).plusDays(6), "A"),
-    Term(5, SchoolHelper.schoolList.get(1).get.school_id, initialDate.plusWeeks(13), initialDate.plusWeeks(13 + 12).plusDays(6), "A"),
-    Term(6, SchoolHelper.schoolList.get(1).get.school_id, initialDate.plusWeeks(13 + 13), initialDate.plusWeeks(13 + 13 + 12).plusDays(6), "A")
-  )
+  val termList: mutable.MutableList[Term] = mutable.MutableList()
+  /** MutableList(
+      * Term(1, SchoolHelper.schoolList.get(0).get.school_id, initialDate, initialDate.plusWeeks(12).plusDays(6), "A"),
+      * Term(2, SchoolHelper.schoolList.get(0).get.school_id, initialDate.plusWeeks(13), initialDate.plusWeeks(13 + 12).plusDays(6), "A"),
+      * Term(3, SchoolHelper.schoolList.get(0).get.school_id, initialDate.plusWeeks(13 + 13), initialDate.plusWeeks(13 + 13 + 12).plusDays(6), "A"),
+      * Term(4, SchoolHelper.schoolList.get(1).get.school_id, initialDate, initialDate.plusWeeks(12).plusDays(6), "A"),
+      * Term(5, SchoolHelper.schoolList.get(1).get.school_id, initialDate.plusWeeks(13), initialDate.plusWeeks(13 + 12).plusDays(6), "A"),
+      * Term(6, SchoolHelper.schoolList.get(1).get.school_id, initialDate.plusWeeks(13 + 13), initialDate.plusWeeks(13 + 13 + 12).plusDays(6), "A")
+    * )
+    **/
   //nitialize all termsheets
   implicit val ws = NingWSClient()
-  val tsl = termList.map(t => TimesheetHelper.populateTimesheet(t, t.school_id))
+  //val tsl = termList.map(t => TimesheetHelper.populateTimesheet(t, t.school_id))
 
   //val schoolTermList: scala.collection.mutable.Map[Long, MutableList[Term]] = scala.collection.mutable.Map((SchoolHelper.schoolList.get(0).get.school_id -> termList),
   // (SchoolHelper.schoolList.get(1).get.school_id -> termList.map(t => t.copy(term_id = (t.term_id + termList.head.term_id)))))
@@ -64,39 +67,14 @@ object TermHelper {
   val registerTermForm = Form(termFormMaping)
 
 
-  def findAllBySchool(school_id: String): List[Term] = termList.filter(_.school_id == school_id).toList
+  def findAllBySchool(school_id: String): List[Term] = ???
 
-  def findById(term_id: Long, school_id: String): Option[Term] = termList.find(t => (t.term_id == term_id && t.school_id == school_id))
+  def findById(term_id: Long, school_id: String): Option[Term] = ???
 
-  def addTerm(trd: TermRegistrationData, school_id: String)(implicit ws: WSClient): Option[Term] = Await.result(SchoolHelper.findById(school_id), Duration.Inf) match {
-    case None => None
-    case Some(school) =>
-
-      val term = Term(termList.last.term_id + 1, school.school_id, trd.begin, trd.finish, "A")
-      termList += term
-      TimesheetHelper.populateTimesheet(term, school_id)
-      Some(term)
-  }
+  def addTerm(trd: TermRegistrationData, school_id: String)(implicit ws: WSClient): Option[Term] = ???
 
 
-  def purgeById(term_id: Long, school_id: String): Boolean = {
-    term_unique_id_count = 0
-
-    val updatedTermList = termList.map { t =>
-      (t.term_id == term_id && t.school_id == school_id) match {
-        case true =>
-          TimesheetHelper.purgeTimesheet(t, school_id)
-          t.copy(status = Reference.STATUS.DELETE)
-        case false => t
-      }
-    }
-    termList.clear()
-    termList ++= updatedTermList
-    updatedTermList.size match {
-      case 0 => false
-      case _ => true
-    }
-  }
+  def purgeById(term_id: Long, school_id: String): Boolean = ???
 
 }
 

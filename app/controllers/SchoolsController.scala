@@ -20,6 +20,7 @@ import javax.inject._
 
 import models._
 import models.common._
+import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.ws.WSClient
@@ -46,9 +47,15 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
   }
 
   def findAllStudentsBySchool(school_id: String) = Action.async { implicit request =>
-    SchoolHelper.findById(school_id).map { school =>
-      val students = StudentHelper.findAll(school_id)
-      //students.foreach(s => println(s"Students are [${s.name}]"))
+    Logger.debug(s"Getting data for school id [${school_id}] ")
+    val sc = SchoolHelper.findById(school_id)
+    Logger.debug(s"Getting all the students for the school")
+    val st = StudentHelper.findAllBySchool(school_id)
+    for {
+      school <- sc
+      students <- st
+    } yield {
+      Logger.debug(s"School is [${school.getOrElse("No school was present")}]")
       Ok(views.html.schools.SchoolStudentListView(students, school))
     }
   }
@@ -61,10 +68,14 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
   }
 
   def findAllGuardiansBySchool(school_id: String) = Action.async { implicit request =>
-    SchoolHelper.findById(school_id).map { school =>
-      val guardians = GuardianHelper.findAllBySchool(school_id)
+    val sc = SchoolHelper.findById(school_id)
+    val gu = GuardianHelper.findAllBySchool(school_id)
+    for {
+      school <- sc
+      guardians <- gu
+    } yield
       Ok(views.html.schools.SchoolGuardianListView(guardians, school))
-    }
+
   }
 
   def findAllTermsBySchool(school_id: String) = Action.async { implicit request =>
@@ -140,7 +151,7 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
       studentRegistrationData => {
         Await.result(StudentHelper.addStudent(studentRegistrationData, school_id), Duration.Inf) match {
           case Some(student_id) => Redirect(routes.SchoolsController.findAllStudentsBySchool(school_id))
-          case None => BadRequest(views.html.schools.AddSchoolStudent(StudentHelper.registerStudentForm, school_id))
+          case _ => BadRequest(views.html.schools.AddSchoolStudent(StudentHelper.registerStudentForm, school_id))
         }
       }
     )

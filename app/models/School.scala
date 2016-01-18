@@ -41,30 +41,31 @@ case class SchoolRegistration(school_name: String, school_address: Address)
 
 object SchoolHelper {
   val schoolFormMapping = mapping(
-    "school_name" -> nonEmptyText(minLength = 10, maxLength = Char.MaxValue),
-    "school_address" -> AddressHelper.addressFormMapping
+    "name" -> nonEmptyText(minLength = 10, maxLength = Char.MaxValue),
+    "address" -> AddressHelper.addressFormMapping
   )(SchoolRegistration.apply)(SchoolRegistration.unapply)
 
+  val registerSchoolForm = Form(schoolFormMapping)
+
   implicit val schoolRegDataJsonWrites: Writes[SchoolRegistration] = (
-    (__ \ "school_name").write[String] and
-      (__ \ "school_address").write[Address]
+    (__ \ "name").write[String] and
+      (__ \ "address").write[Address]
     ) (unlift(SchoolRegistration.unapply))
 
   implicit val schoolJsonWrites: Writes[School] = (
-    (__ \ "school_id").write[String] and
-      (__ \ "school_name").write[String] and
-      (__ \ "school_address").write[Address] and
+    (__ \ "_id").write[String] and
+      (__ \ "name").write[String] and
+      (__ \ "address").write[Address] and
       (__ \ "status").write[String]
     ) (unlift(School.unapply))
 
   implicit val schoolJsonReads: Reads[School] = (
     (__ \ "_id").read[String] and
-      (__ \ "school_name").read[String] and
-      (__ \ "school_address").read[Address] and
+      (__ \ "name").read[String] and
+      (__ \ "address").read[Address] and
       (__ \ "status").read[String]
     ) (School.apply _)
 
-  val registerSchoolForm = Form(schoolFormMapping)
 
   def findAll()(implicit ws: WSClient): Future[List[School]] = {
     Logger.debug(s"Get data for All schools")
@@ -72,6 +73,7 @@ object SchoolHelper {
       """
         |FOR sc in schools FILTER sc.status != "D" RETURN sc
       """.stripMargin)
+    Logger.debug(s"Cursor Query ->\n [${json}]")
     ArangodbDatabaseUtility.databaseCursor.post(json).map { res =>
       Logger.debug(s"The response data -> [${res.json}]")
       (res.json \ "result").validate[List[School]] match {
@@ -84,11 +86,11 @@ object SchoolHelper {
     }
   }
 
-  //def findById(school: Long): Option[School] = schoolList.find(_.school_id == school)
   def findById(school_id: String)(implicit ws: WSClient): Future[Option[School]] = {
     Logger.debug(s"Get data for school with id [${school_id}]")
     ArangodbDatabaseUtility.databaseDocumentApiRequestWithId(school_id)
       .get().map { res2 =>
+      Logger.debug(s"Detail of school with id [${school_id}] ->${res2.json}")
       res2.json.validate[School] match {
         case s: JsSuccess[School] =>
           val school = s.get
@@ -105,17 +107,36 @@ object SchoolHelper {
     * @param guardian_id
     * @return
     */
-  def findAllSchoolsByGuardianId(guardian_id: Long) = GuardianHelper.findById(guardian_id) match {
-    case Some(guardian) =>
-      guardian.students.groupBy(_.student.school).map(_._1).toList
-    case None => Nil
+  def findAllSchoolsByGuardianId(guardian_id: String)(implicit ws: WSClient): Future[List[School]] = {
+    val aql =
+      s"""
+         |FOR gu in guardians
+         |filter gu._id == "${guardian_id}"  && gu.status != "${Reference.STATUS.DELETE}"
+         |FOR e in deals_with
+         |filter e._to == gu._id
+         |FOR sc in schools
+         |filter sc._id == e._from && sc.status != "${Reference.STATUS.DELETE}"
+         |return sc
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"List of the schools based on the id [${guardian_id}] is -> ${res.json}")
+      val schools: List[School] = (res.json \ "result").as[List[School]]
+      schools
+    }
   }
 
   def addSchool(s: SchoolRegistration)(implicit ws: WSClient): Future[Option[String]] = {
-    val json: JsValue = Json.toJson(s).as[JsObject] +("status", JsString(Reference.STATUS.ACTIVE))
-    Logger.debug(s"Adding School -> ${Json.prettyPrint(json)}")
-    ArangodbDatabaseUtility.databaseGraphApiVertexRequest(Reference.DatabaseVertex.SCHOOL).post(json).map { res =>
-      val school_id: String = (res.json \ "vertex" \ "_id").as[String]
+    val sc_json: JsValue = Json.toJson(s).as[JsObject] +("status", JsString(Reference.STATUS.ACTIVE))
+    val aql =
+      s"""
+         |INSERT ${sc_json} in schools
+         |  LET sc = NEW
+         |RETURN sc
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"Details of the school added ->${Json.prettyPrint(res.json)}")
+      val school = (res.json \ "result") (0)
+      val school_id = (school \ "_id").as[String]
       Logger.debug(s"Id of the School added -> ${school_id}")
       Some(school_id)
     }

@@ -16,90 +16,188 @@
 
 package models
 
+import models.common.AddressHelper.{addressJsonReads, addressJsonWrites}
+import models.common.NameHelper.{nameJsonReads, nameJsonWrites}
 import models.common._
+import models.common.reference.Reference
+import org.maikalal.common.util.ArangodbDatabaseUtility
+import play.api.Logger
 import play.api.data.Form
 import play.api.data.Forms._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Writes._
+import play.api.libs.json.{Writes, _}
+import play.api.libs.ws.WSClient
+
+import scala.concurrent.Future
 
 /**
   * Created by pratimsc on 31/12/15.
   */
-case class Guardian(guardian_id: Long, name: Name, address: Address, gender: String, status: String, email: Option[String], national_insurance_number: Option[String], students: List[GuardianStudentRelationShip])
+case class Guardian(guardian_id: String, guardian_name: Name, address: Address, gender: String, status: String, email: Option[String], national_insurance_number: Option[String])
 
 case class GuardianStudentRelationShip(student: Student, relationship: String)
 
-case class GuardianRegistrationData(name: Name, address: Address, gender: String, student_relationship: String, email: Option[String], national_insurance_number: Option[String])
+case class GuardianRegistrationData(guardian_name: Name, address: Address, gender: String, student_relationship: String, email: Option[String], national_insurance_number: Option[String])
 
-case class GuardianStudentRelationShipRegistrationData(school_id: String, student_id: Long, guardian_id: Long, relationship: String)
+case class GuardianStudentRelationShipRegistrationData(school_id: String, student_id: String, guardian_id: String, relationship: String)
 
 object GuardianHelper {
 
   val guardianFormMapping = mapping(
-    "guardian_name" -> NameHelper.nameMapping,
-    "guardian_address" -> AddressHelper.addressFormMapping,
+    "name" -> NameHelper.nameMapping,
+    "address" -> AddressHelper.addressFormMapping,
     "gender" -> nonEmptyText(minLength = 1, maxLength = 1),
     "student_relationship" -> text,
     "email" -> optional(email),
     "national_insurance" -> optional(text(minLength = 8, maxLength = 8))
   )(GuardianRegistrationData.apply)(GuardianRegistrationData.unapply)
 
+  val registerGuardianForm = Form(guardianFormMapping)
+
   val guardianStudentRelationshipFormMapping = mapping(
     "school_id" -> text,
-    "student_id" -> longNumber,
-    "guardian_id" -> longNumber,
+    "student_id" -> text,
+    "guardian_id" -> text,
     "student_relationship" -> text
   )(GuardianStudentRelationShipRegistrationData.apply)(GuardianStudentRelationShipRegistrationData.unapply)
 
-  val registerGuardianForm = Form(guardianFormMapping)
+  implicit val guardianRegDataJsonWrites: Writes[GuardianRegistrationData] = (
+    (__ \ "name").write[Name] and
+      (__ \ "address").write[Address] and
+      (__ \ "gender").write[String] and
+      (__ \ "student_relationship").write[String] and
+      (__ \ "email").writeNullable[String] and
+      (__ \ "national_insurance_number").writeNullable[String]
+    ) (unlift(GuardianRegistrationData.unapply))
+
+  implicit val guardianJsonWrites: Writes[Guardian] = (
+    (__ \ "_id").write[String] and
+      (__ \ "name").write[Name] and
+      (__ \ "address").write[Address] and
+      (__ \ "gender").write[String] and
+      (__ \ "student_relationship").write[String] and
+      (__ \ "email").writeNullable[String] and
+      (__ \ "national_insurance_number").writeNullable[String]
+    ) (unlift(Guardian.unapply))
+  implicit val guardianJsonReads: Reads[Guardian] = (
+    (__ \ "_id").read[String] and
+      (__ \ "name").read[Name] and
+      (__ \ "address").read[Address] and
+      (__ \ "gender").read[String] and
+      (__ \ "student_relationship").read[String] and
+      (__ \ "email").readNullable[String] and
+      (__ \ "national_insurance_number").readNullable[String]
+    ) (Guardian.apply _)
+
 
   /*
    * A non persistence storage for Schools
    */
-  val guardianList = scala.collection.mutable.MutableList[Guardian](
-    Guardian(1, Name("Chocko", Some("Slaughter Man"), "Funny"), AddressHelper.addressList.get(3).get, "M", "A", Some("chocko.funny@blahblah.com"), Some("NI12345781"), List(GuardianStudentRelationShip(StudentHelper.findById(1, "SC1").get, "Father"), GuardianStudentRelationShip(StudentHelper.findById(3, "SC2").get, "Father"))),
-    Guardian(2, Name("Lisa", Some("Pussy Cat"), "Angry"), AddressHelper.addressList.get(3).get, "F", "A", Some("lisa.angry@blahblah.com"), Some("NI12345782"), List(GuardianStudentRelationShip(StudentHelper.findById(3, "SC2").get, "Mother"))),
-    Guardian(3, Name("Mocho", None, "Cobbler"), AddressHelper.addressList.get(3).get, "M", "A", Some("mocho.cobbler@blahblah.com"), Some("NI1234578"), List(GuardianStudentRelationShip(StudentHelper.findById(2, "SC1").get, "Father"))),
-    Guardian(4, Name("Zhinga", Some("Mohanlal"), "Baghmare"), AddressHelper.addressList.get(3).get, "M", "A", Some("zhinga.bhagmare@blahblah.com"), Some("NI1234578"), List(GuardianStudentRelationShip(StudentHelper.findById(4, "SC2").get, "Father"), GuardianStudentRelationShip(StudentHelper.findById(5, "SC2").get, "Grand Father")))
-  )
+  //val guardianList = scala.collection.mutable.MutableList[Guardian]()
 
-  /*
-    Guardian 1 = Student(1, SchoolHelper.findById(1).get, Name("George", Some("Washington"), "DC"), "A", "M", AddressHelper.findById(3).get, DateTime.parse("2012-1-1"), Some("george.dc.washington@blahblah.com"), Some("White American"), Some("Sen code 01")),
-    Guardian 3 = Student(2, SchoolHelper.findById(1).get, Name("Neon", Some("Anderson"), "Matrix"), "A", "M", AddressHelper.findById(4).get, DateTime.parse("2012-1-2"), Some("leon.matrix.anderson@blahblah.com"), Some("White American"), Some("Sen code 01")),
-    Guardian 1,Guardian 2 = Student(3, SchoolHelper.findById(2).get, Name("Lisa", Some("Butcher"), "Gamer"), "A", "F", AddressHelper.findById(5).get, DateTime.parse("2012-1-3"), Some("lisa.gamer.butcher@blahblah.com"), Some("Black American"), Some("Sen code 01")),
-    Guardian 4 = Student(4, SchoolHelper.findById(2).get, Name("Bhima", Some("Pandu"), "Mahabharata"), "A", "M", AddressHelper.findById(6).get, DateTime.parse("2012-1-4"), Some("bhima.mahabharata.pandu@blahblah.com"), Some("Ancient Indian"), Some("Sen code 01")),
-    Guardian 4 = Student(5, SchoolHelper.findById(2).get, Name("Thor", Some("Hammer"), "Pagan God"), "A", "M", AddressHelper.findById(7).get, DateTime.parse("2012-1-5"), Some("thor.pagan.god.hammer@blahblah.com"), Some("Ancient God"), Some("Sen code 01"))
-  )*/
-
-  def findAllBySchool(school_id: String): List[Guardian] = guardianList.filter(_.students.filter(_.student.school.school_id == school_id).isEmpty == false).toList
-
-  def findAllByStudent(student_id: Long): List[Guardian] = guardianList.filter(_.students.filter(_.student.student_id == student_id).isEmpty == false).toList
-
-  def findById(guardian_id: Long): Option[Guardian] = guardianList.find(_.guardian_id == guardian_id)
-
-  def findByIdAndSchool(guardian_id: Long, school_id: String): Option[Guardian] = findById(guardian_id) match {
-    case Some(guardian) =>
-      if (guardian.students.find(_.student.school.school_id == school_id).isEmpty == false)
-        Some(guardian)
-      else
-        None
-    case None => None
+  def findAllBySchool(school_id: String)(implicit ws: WSClient): Future[List[Guardian]] = {
+    val aql =
+      s"""
+         |FOR sc in schools
+         |filter sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
+         |FOR e in deals_with
+         |filter e._from == sc._id
+         |FOR gu in guardians
+         |filter gu._id == e._to && gu.status != "${Reference.STATUS.DELETE}"
+         |return gu
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"List of the guardians based on the school id [${school_id}] is -> ${res.json}")
+      val guardians: List[Guardian] = (res.json \ "result").as[List[Guardian]]
+      guardians
+    }
   }
 
-  //guardian_id: Long, name: Name, address: Address, gender: String, email: Option[String], national_insurance_number: Option[String], students: List[GuardianStudentRelationShip]
-
-  def addGuardian(g: GuardianRegistrationData, student_id: String, school_id: String): Guardian = {
-    val student = StudentHelper.findById(student_id, school_id).get
-    val guardian = Guardian(guardianList.last.guardian_id + 1, g.name, g.address, g.gender, "A", g.email, g.national_insurance_number, List(GuardianStudentRelationShip(student, g.student_relationship)))
-    guardianList += guardian
-    guardian
+  def findAllByStudent(student_id: String)(implicit ws: WSClient): Future[List[Guardian]] = {
+    val aql =
+      s"""
+         |FOR st in students
+         |filter st._id == "${student_id}" && st.status != "${Reference.STATUS.DELETE}"
+         |FOR e in related_to
+         |filter e._from == st._id
+         |FOR gu in guardians
+         |filter gu._id == e._to && gu.status != "${Reference.STATUS.DELETE}"
+         |return gu
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"List of the guardians based on the student id [${student_id}] is -> ${res.json}")
+      val guardians: List[Guardian] = (res.json \ "result").as[List[Guardian]]
+      guardians
+    }
   }
 
-  def updateGuardianStudentRelationship(gsr: GuardianStudentRelationShipRegistrationData): Guardian = {
-    val student = StudentHelper.findById(gsr.student_id, gsr.school_id).get
-    val guardian = findById(gsr.guardian_id).get
-    val students = GuardianStudentRelationShip(student, gsr.relationship) :: guardian.students
-    val new_guardian = guardian.copy(students = students)
-    guardianList.dropWhile(_.guardian_id == new_guardian.guardian_id) += new_guardian
-    new_guardian
+  def findById(guardian_id: String)(implicit ws: WSClient): Future[Option[Guardian]] = {
+    val aql =
+      s"""
+         |FOR gu in guardians
+         |filter gu._id == '${guardian_id}' && gu.status != "${Reference.STATUS.DELETE}"
+         |return gu
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"Details of the guardian based on the id [${guardian_id}] is -> ${res.json}")
+      val guardians: List[Guardian] = (res.json \ "result").as[List[Guardian]]
+      guardians match {
+        case h :: t => Some(h)
+        case _ => None
+      }
+    }
   }
+
+  def findByIdAndSchool(guardian_id: String, school_id: String)(implicit ws: WSClient): Future[Option[Guardian]] = {
+    val aql =
+      s"""
+         |FOR sc in schools
+         |filter sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
+         |FOR e in deals_with
+         |filter e._from == sc._id
+         |FOR gu in guardians
+         |filter gu._id == e._to && gu._id == "${guardian_id}"  && gu.status != "${Reference.STATUS.DELETE}"
+         |return gu
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"Details of the guardian based on the id [${guardian_id}] is -> ${res.json}")
+      val guardians: List[Guardian] = (res.json \ "result").as[List[Guardian]]
+      guardians match {
+        case h :: t => Some(h)
+        case _ => None
+      }
+    }
+  }
+
+  def addGuardian(g: GuardianRegistrationData, student_id: String, school_id: String)(implicit ws: WSClient): Future[Option[String]] = {
+    val g_json: JsValue = Json.toJson(g).as[JsObject] +("status", JsString(Reference.STATUS.ACTIVE))
+    val aql =
+      s"""
+         |FOR sc in schools
+         |  FILTER sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
+         |  FOR st in students
+         |  FILTER st._id == "${student_id}" && st.status != "${Reference.STATUS.DELETE}"
+         |  INSERT ${g_json} in guardians
+         |  let gu = NEW
+         |  INSERT {"_from":sc._id, "_to":gu._id}in deals_with
+         |  let rel1 = NEW
+         |  INSERT {"_from":st._id, "_to":gu._id} in related_to
+         |  let rel2 = NEW
+         |return {"school":sc, "relation_1":rel1, "student":st, "relation_2":rel2, "guardian":gu}
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"Details of the guardian added ->${Json.prettyPrint(res.json)}")
+      val result = (res.json \ "result") (0)
+      val sc_json = result \ "school"
+      val st_json = result \ "student"
+      val gu_json = result \ "guardian"
+      val guardian_id = (gu_json \ "_id").as[String]
+      Some(guardian_id)
+    }
+  }
+
+  def updateGuardianStudentRelationship(gsr: GuardianStudentRelationShipRegistrationData)(implicit ws: WSClient): Future[Some[Guardian]] = ???
 
 }

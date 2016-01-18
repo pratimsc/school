@@ -1,74 +1,74 @@
 @import models.common.WeeklyTimesheet
 @(wts: List[WeeklyTimesheet])(implicit messages: Messages)
-
+@*
 <div id="school_student_weekly_timesheet_list" class="school_student_weekly_timesheet_list">
-    <table class="table table-striped table-hover">
-        <thead>
-            <tr>
-                <th rowspan="3">Timesheet Id</th>
-                <th rowspan="3">Week Id</th>
-                <th rowspan="3">Week Range</th>
-                <th rowspan="3">Student Id</th>
-                <th rowspan="1" colspan="2">Sudent Name</th>
-                <th rowspan="1" colspan="7">Recorded Time</th>
-                <th rowspan="3">Status</th>
-                <th rowspan="3">Actions</th>
-        <tr>
-            <tr>
-                <th>Last</th>
-                <th>First</th>
-                <th>Monday</th>
-                <th>Tuesday</th>
-                <th>Wednesday</th>
-                <th>Thursday</th>
-                <th>Friday</th>
-                <th>Saturday</th>
-                <th>Sunday</th>
-            </tr>
-        </thead>
-        <tbody>
-            @wts match {
-                case Nil => {
-                    <tr>
-                        <td colspan="10">@Messages("schools.detail.timesheet.weekly.nodata")</td>
-                    </tr>
-                }
-                case _ => {
-                    @wts.sortWith((e1, e2) => e1.startsOn.toLocalDate.isBefore(e2.startsOn.toLocalDate)).map { wt =>
-                        <tr>
-                            <td>@wt.weekly_timesheet_id</td>
-                            <td>@wt.startsOn.weekyear().get() - @wt.startsOn.weekOfWeekyear().get()</td>
-                            <td>@wt.startsOn.toLocalDate to @wt.endsOn.toLocalDate</td>
+<table class="table table-striped table-hover">
+<thead>
+<tr>
+<th rowspan="3">Timesheet Id</th>
+<th rowspan="3">Week Id</th>
+<th rowspan="3">Week Range</th>
+<th rowspan="3">Student Id</th>
+<th rowspan="1" colspan="2">Sudent Name</th>
+<th rowspan="1" colspan="7">Recorded Time</th>
+<th rowspan="3">Status</th>
+<th rowspan="3">Actions</th>
+<tr>
+<tr>
+<th>Last</th>
+<th>First</th>
+<th>Monday</th>
+<th>Tuesday</th>
+<th>Wednesday</th>
+<th>Thursday</th>
+<th>Friday</th>
+<th>Saturday</th>
+<th>Sunday</th>
+</tr>
+</thead>
+<tbody>
+@wts match {
+case Nil => {
+<tr>
+<td colspan="10">@Messages("schools.detail.timesheet.weekly.nodata")</td>
+</tr>
+}
+case _ => {
+@wts.sortWith((e1, e2) => e1.startsOn.toLocalDate.isBefore(e2.startsOn.toLocalDate)).map { wt =>
+<tr>
+<td>@wt.weekly_timesheet_id</td>
+<td>@wt.startsOn.weekyear().get() - @wt.startsOn.weekOfWeekyear().get()</td>
+<td>@wt.startsOn.toLocalDate to @wt.endsOn.toLocalDate</td>
 
-                            @StudentHelper.findById(wt.student_id, wt.school_id) match {
-                                case Some(s) => {
-                                    <td>@wt.student_id</td>
-                                    <td>@s.student_name.last</td>
-                                    <td>@s.student_name.first</td>
-                                }
-                                case None => {
-                                    <td colspan="3">@Messages("schools.detail.timesheet.weekly.nostudent")</td>
-                                }
-                            }
+@StudentHelper.findById(wt.student_id, wt.school_id) match {
+case Some(s) => {
+<td>@wt.student_id</td>
+<td>@s.student_name.last</td>
+<td>@s.student_name.first</td>
+}
+case None => {
+<td colspan="3">@Messages("schools.detail.timesheet.weekly.nostudent")</td>
+}
+}
 
-                            @wt.recordedHours.map{ dt =>
-                            <td>@dt.recordedHours.getHours @dt.recordedHours.getFieldType</td>
-                    }
+@wt.recordedHours.map{ dt =>
+<td>@dt.recordedHours.getHours @dt.recordedHours.getFieldType</td>
+}
 
-                    <td>@wt.status</td>
-                    <td>
-                        <a class="btn btn-success" href="@routes.TimesheetsController.findByIdAndSchool(wt.weekly_timesheet_id, wt.school_id)" role="button"> View</a>
-                        @if(wt.status.equalsIgnoreCase("S")) {
-                            <a class="btn btn-success" href="#" role="button"> Submit</a>
-                        }
-        </td>
+<td>@wt.status</td>
+<td>
+<a class="btn btn-success" href="@routes.TimesheetsController.findByIdAndSchool(wt.weekly_timesheet_id, wt.school_id)" role="button"> View</a>
+@if(wt.status.equalsIgnoreCase("S")) {
+<a class="btn btn-success" href="#" role="button"> Submit</a>
+}
+</td>
 
-        </tr>
-            }
-            }
+</tr>
+}
+}
 
-            }
-        </tbody>
-    </table>
-
+}
+</tbody>
+</table>
+*@
 </div>

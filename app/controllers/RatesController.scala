@@ -18,31 +18,33 @@ package controllers
 
 import javax.inject.Inject
 
+import models.SchoolHelper
 import models.common.RateHelper
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller}
 
 /**
   * Created by pratimsc on 28/12/15.
   */
-class RatesController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
+class RatesController @Inject()(val messagesApi: MessagesApi, implicit val ws: WSClient) extends Controller with I18nSupport {
 
 
-  def findRateById(rate_id: Long) = Action { implicit request =>
+  def findRateById(rate_id: Long, school_id: String) = Action.async { implicit request =>
     val rate = RateHelper.findRateById(rate_id)
-    Ok(views.html.rates.RateDetailView(rate))
+    SchoolHelper.findById(school_id).map { school =>
+      Ok(views.html.rates.RateDetailView(rate, school))
+    }
   }
 
-  def findAllSchoolsByRate(rate_id: Long) = Action { implicit request =>
-    val schools = RateHelper.findAllSchoolsByRate(rate_id)
-    val rate = RateHelper.findRateById(rate_id)
-    Ok(views.html.rates.RateSchoolListView(schools, rate))
-  }
 
-  def findAllStudentsByRate(rate_id: Long) = Action { implicit request =>
+  def findAllStudentsByRate(rate_id: Long, school_id: String) = Action.async { implicit request =>
     val students = RateHelper.findAllStudentsByRate(rate_id)
     val rate = RateHelper.findRateById(rate_id)
-    Ok(views.html.rates.RateStudentListView(students, rate))
+    SchoolHelper.findById(school_id).map { school =>
+      Ok(views.html.rates.RateStudentListView(students, rate, school))
+    }
   }
 
   def addRate(school: Long) = TODO

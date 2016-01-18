@@ -1,87 +1,87 @@
 @import models.common.{BandedRate, FlatRate, Rate}
 
-@(rt: Option[Rate])(implicit messages: Messages)
+@(rt: Option[Rate], school: Option[School])(implicit messages: Messages)
+@*
+@rt match {
+case Some(rate) => {
+<div id="rate_detail">
+<div >
+<label>Rate Id </label> @rate.rate_id
+</div>
+<div>
+<label>Rate Code</label> @rate.code
+</div>
+<div>
+<label>Rate Description</label> @rate.description
+</div>
 
-    @rt match {
-        case Some(rate) => {
-            <div id="rate_detail">
-                <div >
-                    <label>Rate Id </label> @rate.rate_id
-                </div>
-            <div>
-                <label>Rate Code</label> @rate.code
-            </div>
-                <div>
-                    <label>Rate Description</label> @rate.description
-            </div>
-
-                <div id="rate_pricing">
-                    @if(rate.isInstanceOf[FlatRate] == true) {
-                        <div id="flat_rate">
-                            <label>Value</label> @rate.asInstanceOf[FlatRate].price
-                        </div>
-                    }
-                    @if(rate.isInstanceOf[BandedRate] == true) {
-                        <div id="banded_rate">
-                            <label>Banded Rate</label>
-                            <table class="table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Lower Limit</th>
-                                        <th>Upper Limit</th>
-                                        <th>Rate</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @rate.asInstanceOf[BandedRate].bands.map{b =>
-                                    <tr>
-                                        <td>@b.lower_limit match {
-                                            case Some(h) => {
-                                                @h.getHours
-                                            }
-                                            case None => {
-                                                None
-                                            }
-                                        }
-                                        </td>
-                                        <td>@b.upper_limit match {
-                                            case Some(h) => {
-                                                @h.getHours
-                                            }
-                                            case None => {
-                                                None
-                                            }
-                                        }</td>
-                                        <td>@b.rate</td>
-                                    </tr>
-
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-            </div>
-
-                <div>
-                    <label>Type</label> @rate.chargeOrRebate
-            </div>
-                <div>
-                    <label>Status</label> @rate.status
-                </div>
-
-                <div id="rate_permitted_actions">
-                    <div id="rate_permitted_actions_view">
-                        <a class="btn btn-primary" href="@routes.RatesController.findAllStudentsByRate(rate.rate_id)" role="button">Students</a>
-                        <a class="btn btn-primary" href="@routes.RatesController.findAllSchoolsByRate(rate.rate_id)" role="button">Schools</a>
-                </div>
-                    <div id="rate_permitted_actions_update">
-                    <a class="btn btn-warning" href="#" role="button">Edit</a>
-                </div>
-            </div>
-        </div>
-    }
-    case None => {
-        <div>@Messages("rates.detail.nodata")</div>
-    }
+<div id="rate_pricing">
+@if(rate.isInstanceOf[FlatRate] == true) {
+<div id="flat_rate">
+<label>Value</label> @rate.asInstanceOf[FlatRate].price
+</div>
+}
+@if(rate.isInstanceOf[BandedRate] == true) {
+<div id="banded_rate">
+<label>Banded Rate</label>
+<table class="table-striped">
+<thead>
+<tr>
+<th>Lower Limit</th>
+<th>Upper Limit</th>
+<th>Rate</th>
+</tr>
+</thead>
+<tbody>
+@rate.asInstanceOf[BandedRate].bands.map{b =>
+<tr>
+<td>@b.lower_limit match {
+case Some(h) => {
+@h.getHours
+}
+case None => {
+None
+}
+}
+</td>
+<td>@b.upper_limit match {
+case Some(h) => {
+@h.getHours
+}
+case None => {
+None
+}
+}</td>
+<td>@b.rate</td>
+</tr>
 
 }
+</tbody>
+</table>
+</div>
+}
+</div>
+
+<div>
+<label>Type</label> @rate.chargeOrRebate
+</div>
+<div>
+<label>Status</label> @rate.status
+</div>
+
+<div id="rate_permitted_actions">
+<div id="rate_permitted_actions_view">
+<a class="btn btn-primary" href="@routes.RatesController.findAllStudentsByRate(rate.rate_id, school.get)" role="button">Students</a>
+<a class="btn btn-primary" href="@routes.RatesController.findAllSchoolsByRate(rate.rate_id)" role="button">Schools</a>
+</div>
+<div id="rate_permitted_actions_update">
+<a class="btn btn-warning" href="#" role="button">Edit</a>
+</div>
+</div>
+</div>
+}
+case None => {
+<div>@Messages("rates.detail.nodata")</div>
+}
+}
+*@

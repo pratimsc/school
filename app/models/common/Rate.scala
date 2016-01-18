@@ -21,6 +21,8 @@ import models.common.time.{Frequency, ONCE, WEEKLY}
 import org.joda.money.{CurrencyUnit, Money}
 import org.joda.time._
 import org.joda.time.format.ISODateTimeFormat
+import play.api.libs.ws.WSClient
+import play.api.libs.ws.ning.NingWSClient
 
 import scala.collection.immutable.List
 import scala.collection.mutable.MutableList
@@ -65,6 +67,9 @@ case class RateAppliedToStudent(student: Student, rate: Rate, status: String, si
 
 object RateHelper {
 
+
+  implicit val ws: WSClient = NingWSClient()
+
   val ratesList: MutableList[Rate] = MutableList(
     FlatRate(1, "R01", "Base Rate", "Charge", "A", Money.ofMinor(CurrencyUnit.GBP, 900)),
     FlatRate(2, "R02", "Base Rate", "Charge", "A", Money.ofMinor(CurrencyUnit.GBP, 1100)),
@@ -93,7 +98,8 @@ object RateHelper {
       Some(Weeks.ONE))
   )
 
-  val schoolRatesList: MutableList[(School, Rate)] = MutableList(
+  val schoolRatesList: MutableList[(School, Rate)] = MutableList()
+  /*
     (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(0).get),
     (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(1).get),
     (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(2).get),
@@ -107,19 +113,21 @@ object RateHelper {
     (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(10).get),
     (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(11).get),
     (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(12).get)
-  )
+  )*/
 
-  val studentRatesList: MutableList[RateAppliedToStudent] = MutableList(
-    RateAppliedToStudent(StudentHelper.studentList.get(0).get, schoolRatesList.get(0).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
-    RateAppliedToStudent(StudentHelper.studentList.get(1).get, schoolRatesList.get(2).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
-    RateAppliedToStudent(StudentHelper.studentList.get(2).get, schoolRatesList.get(1).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
-    RateAppliedToStudent(StudentHelper.studentList.get(3).get, schoolRatesList.get(1).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
-    RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(3).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, ONCE),
-    RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(9).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, ONCE),
-    RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(10).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
-    RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(11).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
-    RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(12).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY)
-  )
+  val studentRatesList: MutableList[RateAppliedToStudent] = MutableList()
+
+  /**
+    * RateAppliedToStudent(StudentHelper.studentList.get(0).get, schoolRatesList.get(0).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
+    * RateAppliedToStudent(StudentHelper.studentList.get(1).get, schoolRatesList.get(2).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
+    * RateAppliedToStudent(StudentHelper.studentList.get(2).get, schoolRatesList.get(1).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
+    * RateAppliedToStudent(StudentHelper.studentList.get(3).get, schoolRatesList.get(1).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
+    * RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(3).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, ONCE),
+    * RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(9).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, ONCE),
+    * RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(10).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
+    * RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(11).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
+    * RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(12).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY)
+ */
 
   def findRateById(rate_id: Long) = ratesList.find(_.rate_id == rate_id)
 
