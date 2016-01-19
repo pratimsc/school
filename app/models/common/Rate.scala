@@ -17,127 +17,197 @@
 package models.common
 
 import models._
-import models.common.time.{Frequency, ONCE, WEEKLY}
-import org.joda.money.{CurrencyUnit, Money}
+import models.common.time.Frequency
+import models.common.time.Frequency.{frequencyJsonReads, frequencyJsonWrites}
+import org.joda.money.Money
 import org.joda.time._
-import org.joda.time.format.ISODateTimeFormat
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json.Writes._
+import play.api.libs.json.{Reads, Writes, _}
 import play.api.libs.ws.WSClient
-import play.api.libs.ws.ning.NingWSClient
 
 import scala.collection.immutable.List
-import scala.collection.mutable.MutableList
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.concurrent.Future
 
 /**
   * Created by pratimsc on 01/01/16.
   */
-case class RateUnit(id: Long, minor: Hours, description: String)
+case class RateUnit(minor: Hours, description: String)
 
 
 object RateUnit {
-  val perHour = RateUnit(1, Hours.hours(1), "Per Hour")
-  val per8HourDay = RateUnit(2, Hours.hours(8), "Per Day (8 hours)")
-  val per12HourDay = RateUnit(3, Hours.hours(12), "Per Day (12 hours)")
-  val per30HoursWeek = RateUnit(1, Hours.hours(30), "Per Week (30 hours)")
+  val perHour = RateUnit(Hours.hours(1), "Per Hour")
+  val per8HourDay = RateUnit(Hours.hours(8), "Per Day (8 hours)")
+  val per12HourDay = RateUnit(Hours.hours(12), "Per Day (12 hours)")
+  val per30HoursWeek = RateUnit(Hours.hours(30), "Per Week (30 hours)")
 }
 
 trait Rate {
-  def rate_id: Long;
+  def rate_id: String
 
-  def code: String;
+  def code: String
 
-  def description: String;
+  def description: String
 
-  def chargeOrRebate: String;
+  def chargeOrRebate: String
 
   def status: String
 }
 
-case class FlatRate(rate_id: Long, code: String, description: String, chargeOrRebate: String, status: String, price: Money) extends Rate
+case class FlatRate(rate_id: String, code: String, description: String, chargeOrRebate: String, status: String, price: Money) extends Rate
 
-case class BandedRate(rate_id: Long, code: String, description: String, chargeOrRebate: String, status: String, bands: List[Band], period: Option[ReadablePeriod]) extends Rate
+case class BandedRate(rate_id: String, code: String, description: String, chargeOrRebate: String, status: String, bands: List[Band], period: Option[Period]) extends Rate
 
 case class Band(lower_limit: Option[Hours], upper_limit: Option[Hours], rate: Money) {
   require(lower_limit != None || upper_limit != None, "Both lower and upper limits can not be None.")
   require(lower_limit != upper_limit, "Lower limit should be same as the upper limit.")
 }
 
-case class RateAppliedToStudent(student: Student, rate: Rate, status: String, since: DateTime, until: Option[DateTime], count: Option[Long], frequency: Frequency)
+case class RateAppliedToStudent(rate_applied_id: String, rate: Rate, status: String, since: DateTime, until: Option[DateTime], count: Option[Long], frequency: Frequency)
 
 object RateHelper {
 
 
-  implicit val ws: WSClient = NingWSClient()
+  implicit val hourJsonWrites: Writes[Hours] = (__ \ "hours").write[Int].contramap(_.getHours)
+  implicit val hourJsonReads: Reads[Hours] = (__ \ "hours").read[Int].map(Hours.hours _)
 
-  val ratesList: MutableList[Rate] = MutableList(
-    FlatRate(1, "R01", "Base Rate", "Charge", "A", Money.ofMinor(CurrencyUnit.GBP, 900)),
-    FlatRate(2, "R02", "Base Rate", "Charge", "A", Money.ofMinor(CurrencyUnit.GBP, 1100)),
-    FlatRate(3, "R03", "Base Rate", "Charge", "A", Money.ofMinor(CurrencyUnit.GBP, 18000)),
-    FlatRate(4, "R04", "Base Rate", "Charge", "A", Money.ofMinor(CurrencyUnit.GBP, 36000)),
-    FlatRate(5, "R05", "Base Rate", "Rebate", "A", Money.ofMinor(CurrencyUnit.GBP, 450)),
-    FlatRate(6, "R06", "Base Rate", "Rebate", "A", Money.ofMinor(CurrencyUnit.GBP, 550)),
-    FlatRate(7, "R07", "Base Rate", "Rebate", "A", Money.ofMinor(CurrencyUnit.GBP, 9000)),
-    FlatRate(8, "R08", "Base Rate", "Rebate", "A", Money.ofMinor(CurrencyUnit.GBP, 18000)),
-    FlatRate(9, "R09", "Flat Rate 1", "Charge", "A", Money.ofMinor(CurrencyUnit.GBP, 1000)),
-    FlatRate(10, "R10", "Flat Rate 2", "Charge", "A", Money.ofMinor(CurrencyUnit.GBP, 2000)),
-    BandedRate(11, "R11", "Banded Rate 11", "Charge", "A", List(
-      Band(Some(Hours.hours(1)), Some(Hours.hours(15)), Money.ofMinor(CurrencyUnit.GBP, 650)),
-      Band(Some(Hours.hours(16)), Some(Hours.hours(30)), Money.ofMinor(CurrencyUnit.GBP, 1300)),
-      Band(Some(Hours.hours(31)), None, Money.ofMinor(CurrencyUnit.GBP, 1500))),
-      Some(Weeks.ONE)),
-    BandedRate(12, "R11", "Banded Rate 11", "Charge", "A", List(
-      Band(Some(Hours.hours(1)), Some(Hours.hours(15)), Money.ofMinor(CurrencyUnit.GBP, 750)),
-      Band(Some(Hours.hours(16)), Some(Hours.hours(30)), Money.ofMinor(CurrencyUnit.GBP, 1500)),
-      Band(Some(Hours.hours(31)), None, Money.ofMinor(CurrencyUnit.GBP, 1700))),
-      Some(Weeks.ONE)),
-    BandedRate(13, "R13", "Banded Rate 11", "Charge", "A", List(
-      Band(Some(Hours.hours(1)), Some(Hours.hours(15)), Money.ofMinor(CurrencyUnit.GBP, 850)),
-      Band(Some(Hours.hours(16)), Some(Hours.hours(30)), Money.ofMinor(CurrencyUnit.GBP, 1700)),
-      Band(Some(Hours.hours(31)), None, Money.ofMinor(CurrencyUnit.GBP, 1900))),
-      Some(Weeks.ONE))
-  )
+  implicit val moneyJsonWrites: Writes[Money] = (__).write[String].contramap(_.toString)
+  implicit val moneyJsonReads: Reads[Money] = (__).read[String].map(Money.parse _)
 
-  val schoolRatesList: MutableList[(School, Rate)] = MutableList()
-  /*
-    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(0).get),
-    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(1).get),
-    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(2).get),
-    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(3).get),
-    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(4).get),
-    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(5).get),
-    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(6).get),
-    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(7).get),
-    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(8).get),
-    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(9).get),
-    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(10).get),
-    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(11).get),
-    (Await.result(SchoolHelper.findById("schools/9677062879"), Duration.Inf).get, ratesList.get(12).get)
-  )*/
+  implicit val periodJsonWrites: Writes[Period] = (__).write[String].contramap(_.toString)
+  implicit val periodJsonReads: Reads[Period] = (__).read[String].map(Period.parse _)
 
-  val studentRatesList: MutableList[RateAppliedToStudent] = MutableList()
+  implicit val rateUnitJsonWrites: Writes[RateUnit] = (
+    (__ \ "minor").write[Hours] and
+      (__ \ "description").write[String]
+    ) (unlift(RateUnit.unapply))
+  implicit val rateUnitJsonReads: Reads[RateUnit] = (
+    (__ \ "minor").read[Hours] and
+      (__ \ "description").read[String]
+    ) (RateUnit.apply _)
 
-  /**
-    * RateAppliedToStudent(StudentHelper.studentList.get(0).get, schoolRatesList.get(0).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
-    * RateAppliedToStudent(StudentHelper.studentList.get(1).get, schoolRatesList.get(2).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
-    * RateAppliedToStudent(StudentHelper.studentList.get(2).get, schoolRatesList.get(1).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
-    * RateAppliedToStudent(StudentHelper.studentList.get(3).get, schoolRatesList.get(1).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
-    * RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(3).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, ONCE),
-    * RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(9).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, ONCE),
-    * RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(10).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
-    * RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(11).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY),
-    * RateAppliedToStudent(StudentHelper.studentList.get(4).get, schoolRatesList.get(12).get._2, "Active", DateTime.parse("20150101", ISODateTimeFormat.basicDate()), None, None, WEEKLY)
+  implicit val flatRateJsonWrites: Writes[FlatRate] = (
+    (__ \ "_id").write[String] and
+      (__ \ "code").write[String] and
+      (__ \ "description").write[String] and
+      (__ \ "chargeOrRebate").write[String] and
+      (__ \ "status").write[String] and
+      (__ \ "price").write[Money]
+    ) (unlift(FlatRate.unapply))
+  implicit val flatRateJsonReads: Reads[FlatRate] = (
+    (__ \ "_id").read[String] and
+      (__ \ "code").read[String] and
+      (__ \ "description").read[String] and
+      (__ \ "chargeOrRebate").read[String] and
+      (__ \ "status").read[String] and
+      (__ \ "price").read[Money]
+    ) (FlatRate.apply _)
+
+  implicit val bandJsonWrites: Writes[Band] = (
+    (__ \ "lower_limit").writeNullable[Hours] and
+      (__ \ "upper_limit").writeNullable[Hours] and
+      (__ \ "rate").write[Money]
+    ) (unlift(Band.unapply))
+  implicit val bandJsonReads: Reads[Band] = (
+    (__ \ "lower_limit").readNullable[Hours] and
+      (__ \ "upper_limit").readNullable[Hours] and
+      (__ \ "rate").read[Money]
+    ) (Band.apply _)
+
+  implicit val bandedRateJsonWrites: Writes[BandedRate] = (
+    (__ \ "_id").write[String] and
+      (__ \ "code").write[String] and
+      (__ \ "description").write[String] and
+      (__ \ "chargeOrRebate").write[String] and
+      (__ \ "status").write[String] and
+      (__ \ "bands").write[List[Band]] and
+      (__ \ "period").writeNullable[Period]
+    ) (unlift(BandedRate.unapply))
+  implicit val bandedRateJsonReads: Reads[BandedRate] = (
+    (__ \ "_id").read[String] and
+      (__ \ "code").read[String] and
+      (__ \ "description").read[String] and
+      (__ \ "chargeOrRebate").read[String] and
+      (__ \ "status").read[String] and
+      (__ \ "bands").read[List[Band]] and
+      (__ \ "period").readNullable[Period]
+    ) (BandedRate.apply _)
+
+  //case class RateAppliedToStudent(rate_applied_id: String, rate: Rate, status: String, since: DateTime, until: Option[DateTime], count: Option[Long], frequency: Frequency)
+  /*implicit val rateAppliedToStudentJsonWrites: Writes[RateAppliedToStudent] = (
+    (__ \ "_id").write[String] and
+      (__ \ "rate").write[Rate] and
+      (__ \ "status").write[String] and
+      (__ \ "since").write[DateTime] and
+      (__ \ "until").writeNullable[DateTime] and
+      (__ \ "count").writeNullable[Long] and
+      (__ \ "frequency").write[Frequency]
+    ) (unlift(RateAppliedToStudent.unapply))
+*/
+  implicit val rateAppliedToStudentJsonWrites: Writes[RateAppliedToStudent] = new Writes[RateAppliedToStudent] {
+    override def writes(o: RateAppliedToStudent): JsValue = Json.obj(
+      "_id" -> o.rate_applied_id,
+      "rate_type" -> (o.rate match {
+        case f: FlatRate => "F"
+        case b: BandedRate => "B"
+      }),
+      "rate" -> (o.rate match {
+        case f: FlatRate => f
+        case b: BandedRate => b
+      }),
+      "status" -> o.status,
+      "since" -> o.since,
+      "until" -> o.until,
+      "count" -> o.count,
+      "frequency" -> o.frequency
+    )
+  }
+
+  implicit val rateAppliedToStudentJsonReads: Reads[RateAppliedToStudent] = new Reads[RateAppliedToStudent] {
+    override def reads(json: JsValue): JsResult[RateAppliedToStudent] = {
+      try {
+        JsSuccess(RateAppliedToStudent(
+          (json \ "_id").as[String],
+          (json \ "rate_type").as[String] match {
+            case "F" => (json \ "rate").as[FlatRate]
+            case "B" => (json \ "rate").as[BandedRate]
+          },
+          (json \ "status").as[String],
+          (json \ "since").as[DateTime],
+          (json \ "until").asOpt[DateTime],
+          (json \ "count").asOpt[Long],
+          (json \ "frequency").as[Frequency]
+        ))
+      } catch {
+        case e: Throwable => JsError(e.getMessage)
+      }
+    }
+  }
+
+  /* implicit val rateAppliedToStudentJsonReads1: Reads[RateAppliedToStudent] = (
+     (__ \ "_id").read[String] and
+       ((__ \ "rate_type").read[String] match {
+         case "F" => (__ \ "rate").read[FlatRate]
+         case "B" => (__ \ "rate").read[BandedRate]
+       }) and
+       (__ \ "status").read[String] and
+       (__ \ "since").read[DateTime] and
+       (__ \ "until").read[DateTime] and
+       (__ \ "count").read[Long] and
+       (__ \ "frequency").read[Frequency]
+     ) (Frequency.parse _)
+
  */
+  def findRateById(rate_id: String)(implicit ws: WSClient): Future[Option[Rate]] = ???
 
-  def findRateById(rate_id: Long) = ratesList.find(_.rate_id == rate_id)
+  def findAllRatesBySchool(school_id: String)(implicit ws: WSClient): Future[List[Rate]] = ???
 
-  def findAllRatesBySchool(school_id: String): List[Rate] = schoolRatesList.filter(_._1.school_id == school_id).map(_._2).toList
+  def findAllRatesByStudent(student_id: String)(implicit ws: WSClient): Future[List[Rate]] = ???
 
-  def findAllRatesByStudent(student_id: String): List[Rate] = studentRatesList.filter(_.student.student_id == student_id).map(_.rate).toList
+  def findAllAppliedRatesByStudent(student_id: String)(implicit ws: WSClient): Future[List[RateAppliedToStudent]] = ???
 
-  def findAllAppliedRatesByStudent(student_id: String): List[RateAppliedToStudent] = studentRatesList.filter(_.student.student_id == student_id).toList
+  def findAllSchoolsByRate(rate_id: String)(implicit ws: WSClient): Future[List[School]] = ???
 
-  def findAllSchoolsByRate(rate_id: Long): List[School] = schoolRatesList.groupBy(_._1).map(_._1).toList
-
-  def findAllStudentsByRate(rate_id: Long): List[Student] = studentRatesList.filter(_.rate.rate_id == rate_id).map(_.student).toList
+  def findAllStudentsByRate(rate_id: String)(implicit ws: WSClient): Future[List[Student]] = ???
 }

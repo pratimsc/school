@@ -31,22 +31,28 @@ import play.api.mvc.{Action, Controller}
 class RatesController @Inject()(val messagesApi: MessagesApi, implicit val ws: WSClient) extends Controller with I18nSupport {
 
 
-  def findRateById(rate_id: Long, school_id: String) = Action.async { implicit request =>
-    val rate = RateHelper.findRateById(rate_id)
-    SchoolHelper.findById(school_id).map { school =>
+  def findRateById(rate_id: String, school_id: String) = Action.async { implicit request =>
+    val r = RateHelper.findRateById(rate_id)
+    val sc = SchoolHelper.findById(school_id)
+    for {
+      school <- sc
+      rate <- r
+    } yield
       Ok(views.html.rates.RateDetailView(rate, school))
-    }
   }
 
-
-  def findAllStudentsByRate(rate_id: Long, school_id: String) = Action.async { implicit request =>
-    val students = RateHelper.findAllStudentsByRate(rate_id)
-    val rate = RateHelper.findRateById(rate_id)
-    SchoolHelper.findById(school_id).map { school =>
+  def findAllStudentsByRate(rate_id: String, school_id: String) = Action.async { implicit request =>
+    val st = RateHelper.findAllStudentsByRate(rate_id)
+    val r = RateHelper.findRateById(rate_id)
+    val sc = SchoolHelper.findById(school_id)
+    for {
+      school <- sc
+      rate <- r
+      students <- st
+    } yield
       Ok(views.html.rates.RateStudentListView(students, rate, school))
-    }
   }
 
-  def addRate(school: Long) = TODO
+  def addRate(school_id: String) = TODO
 
 }

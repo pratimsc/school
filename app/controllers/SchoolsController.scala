@@ -61,10 +61,13 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
   }
 
   def findAllRatesBySchool(school_id: String) = Action.async { implicit request =>
-    SchoolHelper.findById(school_id).map { school =>
-      val rates: List[Rate] = RateHelper.findAllRatesBySchool(school_id)
+    val sc = SchoolHelper.findById(school_id)
+    val r = RateHelper.findAllRatesBySchool(school_id)
+    for {
+      school <- sc
+      rates <- r
+    } yield
       Ok(views.html.schools.SchoolRatesListView(rates, school))
-    }
   }
 
   def findAllGuardiansBySchool(school_id: String) = Action.async { implicit request =>

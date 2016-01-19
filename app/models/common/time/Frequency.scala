@@ -21,37 +21,49 @@ package models.common.time
   */
 
 import org.joda.time.Period
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json.Writes._
+import play.api.libs.json.{Reads, _}
 
 /**
   * Enumeration of frequency base for utilizing with an RRule
-  * Copied from - https://raw.githubusercontent.com/saddle/saddle/master/saddle-core/src/main/scala/org/saddle/time/Frequency.scala
+  * Copied initially from - https://raw.githubusercontent.com/saddle/saddle/master/saddle-core/src/main/scala/org/saddle/time/Frequency.scala
+  * Later on changed to a different implementation
   */
-sealed trait Frequency {
-  this: Frequency =>
-  protected[time] def toDur: Period = this match {
-    case SECONDLY => Period.seconds(1)
-    case MINUTELY => Period.minutes(1)
-    case HOURLY => Period.hours(1)
-    case DAILY => Period.days(1)
-    case WEEKLY => Period.weeks(1)
-    case MONTHLY => Period.months(1)
-    case YEARLY => Period.years(1)
-    case ONCE => Period.ZERO
+
+
+case class Frequency(frequency: Period)
+
+object Frequency {
+
+  implicit val frequencyJsonReads: Reads[Frequency] = (__).read[String].map(Frequency.parse(_))
+  implicit val frequencyJsonWrites: Writes[Frequency] = (__).write[String].contramap(Frequency.printString(_))
+
+  val SECONDLY = Frequency(Period.seconds(1))
+  val MINUTELY = Frequency(Period.minutes(1))
+  val HOURLY = Frequency(Period.hours(1))
+  val DAILY = Frequency(Period.days(1))
+  val WEEKLY = Frequency(Period.weeks(1))
+  val MONTHLY = Frequency(Period.months(1))
+  val YEARLY = Frequency(Period.years(1))
+  val ONCE = Frequency(Period.ZERO)
+
+  val frequencies = List(ONCE, SECONDLY, MINUTELY, HOURLY, DAILY, WEEKLY, MONTHLY, YEARLY)
+
+  def parse(s: String): Frequency = s match {
+    case "PT1S" => SECONDLY
+    case "PT1M" => MINUTELY
+    case "PT1H" => HOURLY
+    case "P1D" => DAILY
+    case "P1W" => WEEKLY
+    case "P1M" => MONTHLY
+    case "P1Y" => YEARLY
+    case "PT0S" => ONCE
+    case _ => ONCE
   }
+
+  def printString(f: Frequency) = f.frequency.toString
+
 }
 
-case object ONCE extends Frequency
-
-case object SECONDLY extends Frequency
-
-case object MINUTELY extends Frequency
-
-case object HOURLY extends Frequency
-
-case object DAILY extends Frequency
-
-case object WEEKLY extends Frequency
-
-case object MONTHLY extends Frequency
-
-case object YEARLY extends Frequency

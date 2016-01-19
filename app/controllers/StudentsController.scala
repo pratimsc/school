@@ -18,15 +18,15 @@ package controllers
 
 import javax.inject.Inject
 
-import models.common.{RateHelper, TimesheetHelper}
 import models._
+import models.common.{RateHelper, TimesheetHelper}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller}
 
-import scala.concurrent.{Future, Await}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 /**
   * Created by pratimsc on 27/12/15.
@@ -62,12 +62,13 @@ class StudentsController @Inject()(val messagesApi: MessagesApi, implicit val ws
 
   def findAllAppliedRates(student_id: String, school_id: String) = Action.async {
     implicit request =>
-      val rates = RateHelper.findAllAppliedRatesByStudent(student_id)
+      val r = RateHelper.findAllAppliedRatesByStudent(student_id)
       val sc = SchoolHelper.findById(school_id)
       val st = StudentHelper.findByIdAndSchool(student_id, school_id)
       for {
         school <- sc
         student <- st
+        rates <- r
       } yield
         Ok(views.html.students.StudentRateListView(rates, student, school))
   }
