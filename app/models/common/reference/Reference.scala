@@ -16,7 +16,7 @@
 
 package models.common.reference
 
-import org.joda.time.{DateTime, Hours}
+import org.joda.time.{DateTime, Hours, Period}
 
 /**
   * Created by pratimsc on 03/01/16.
@@ -62,9 +62,27 @@ object Reference {
   }
 
   val genderList = Seq(Gender.MALE -> "Male", Gender.FEMALE -> "Female")
-  val guardianStudentRelationshipList = Seq("GSR01" -> "Father", "GSR02" -> "Mother", "GSR03" -> "Grand Father", "GSR04" -> "Grand Mother", "GSR05" -> "Guardian")
-  val ethnicityList = Seq("WBRI" -> "White-British", "AIND" -> "Asian/Asian British-Indian", "CHNE" -> "Chinese", "MWAS" -> "Mixed -White and Asian")
-  val specialEducationNeedCodeList = Seq("N" -> "No special educational need", "EYA" -> "Early years / school action", "EYAP" -> "Early years action / school plus", "S" -> "Statement of SEN")
+  val guardianStudentRelationshipList = Seq("GSR01" -> "Father",
+    "GSR02" -> "Mother",
+    "GSR03" -> "Grand Father",
+    "GSR04" -> "Grand Mother",
+    "GSR05" -> "Guardian")
+  val ethnicityList = Seq("WBRI" -> "White-British",
+    "AIND" -> "Asian/Asian British-Indian",
+    "CHNE" -> "Chinese",
+    "MWAS" -> "Mixed -White and Asian")
+  val specialEducationNeedCodeList = Seq("N" -> "No special educational need",
+    "EYA" -> "Early years / school action",
+    "EYAP" -> "Early years action / school plus",
+    "S" -> "Statement of SEN")
+  val chargeOrRebateOption = Seq("C" -> "Charge", "R" -> "Rebate")
+  val statusList = Seq(STATUS.ACTIVE -> "Active", STATUS.INACTIVE -> "Inactive", STATUS.SUSPENDED -> "Suspended")
+  val periodList = Seq(Period.hours(1).toString -> "Hourly",
+    Period.days(1).toString -> "Daily",
+    Period.weeks(1).toString -> "Weekly",
+    Period.months(1).toString -> "Monthly",
+    Period.years(1).toString -> "Yearly",
+    Period.ZERO.toString -> "On Demand")
 
   def businessDate = new DateTime()
 

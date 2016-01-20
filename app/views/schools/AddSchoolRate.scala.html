@@ -1,0 +1,35 @@
+@import helper._
+@import models.common.reference.Reference
+@import models.common.{BandedRateRegistrationData, FlatRateRegistrationData}
+@(flatRate: Form[FlatRateRegistrationData], bandedRate: Form[BandedRateRegistrationData], school_id: String)(implicit messages: Messages)
+
+@views.html.common.nuggets.head("Register Rate")
+
+<div id="register_school_rate">
+    <div id="rate_type_section">
+        <input type="radio" name="flat" value="flat" checked> Flat Rate<br>
+        <input type="radio" name="banded" value="banded"> Banded Rate<br>
+    </div>
+
+    <div id="flat_rate_form">
+    @form(action = routes.SchoolsController.addRate(school_id, 'F'), 'class -> "form-horizontal") {
+        <div class="form-group">
+            @inputText(flatRate("code"), '_label -> "Code", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
+            @inputText(flatRate("description"), '_label -> "Description", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
+            @inputRadioGroup(flatRate("chargeOrRebate"), options = Reference.chargeOrRebateOption, '_label -> "Charge/Rebate", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
+            @select(flatRate("status"), options = Reference.statusList, '_label -> "Status", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
+        </div>
+        <a class="btn btn-primary" href="@routes.SchoolsController.findAllRatesBySchool(school_id)" role="button">
+            Back/Cancel</a>
+        <input class="btn btn-success" type="submit" value="Register Rates" type="button">
+        }
+    </div>
+
+    <div id="banded_rate_form">
+    @form(action = routes.SchoolsController.addRate(school_id, 'B'), 'class -> "form-horizontal") {
+        Banded Rates
+        <div class="form-group">
+        </div>
+    }
+    </div>
+@views.html.common.nuggets.body_scripts()

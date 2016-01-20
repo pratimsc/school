@@ -54,10 +54,6 @@ object TermHelper {
     **/
   //nitialize all termsheets
   implicit val ws = NingWSClient()
-  //val tsl = termList.map(t => TimesheetHelper.populateTimesheet(t, t.school_id))
-
-  //val schoolTermList: scala.collection.mutable.Map[Long, MutableList[Term]] = scala.collection.mutable.Map((SchoolHelper.schoolList.get(0).get.school_id -> termList),
-  // (SchoolHelper.schoolList.get(1).get.school_id -> termList.map(t => t.copy(term_id = (t.term_id + termList.head.term_id)))))
 
   private val termFormMaping = mapping(
     "begin_date" -> jodaDate("yyyy-MM-dd"),

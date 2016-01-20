@@ -182,7 +182,28 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
     * @param school_id
     * @return
     */
-  def addRate(school_id: String) = Action { implicit request =>
-    NotImplemented
+  def addRate(school_id: String, rateType: Char) = Action { implicit request =>
+    rateType match {
+      case 'F' =>
+        RateHelper.flatRateRegistrationForm.bindFromRequest().fold(
+          formsWithError => BadRequest(views.html.schools.AddSchoolRate(formsWithError, RateHelper.bandedRateRegistrationForm, school_id)),
+          flatRateRegData => {
+            Await.result(RateHelper.addFlatRate(flatRateRegData, school_id), Duration.Inf) match {
+              case Some(rate_id) => Redirect(routes.SchoolsController.findAllRatesBySchool(school_id))
+              case _ => BadRequest(views.html.schools.AddSchoolRate(RateHelper.flatRateRegistrationForm, RateHelper.bandedRateRegistrationForm, school_id))
+            }
+          }
+        )
+      case 'B' =>
+        RateHelper.bandedRateRegistrationForm.bindFromRequest().fold(
+          formsWithError => BadRequest(views.html.schools.AddSchoolRate(RateHelper.flatRateRegistrationForm, formsWithError, school_id)),
+          bandedRateRegData => {
+            Await.result(RateHelper.addBandedRate(bandedRateRegData, school_id), Duration.Inf) match {
+              case Some(rate_id) => Redirect(routes.SchoolsController.findAllRatesBySchool(school_id))
+              case _ => BadRequest(views.html.schools.AddSchoolRate(RateHelper.flatRateRegistrationForm, RateHelper.bandedRateRegistrationForm, school_id))
+            }
+          }
+        )
+    }
   }
 }

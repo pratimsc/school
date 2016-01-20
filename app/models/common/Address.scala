@@ -25,23 +25,7 @@ import play.api.libs.json._
   */
 case class Address(first_line: Option[String], second_line: Option[String], city: Option[String], county: Option[String], country: String, zip_code: String)
 
-//case class AddressRegistrationData(first_line: Option[String], second_line: Option[String], city: Option[String], county: Option[String], country: String, zip_code: String)
-
-
 object AddressHelper {
-  /*
-   * A non persistence storage for Address
-   */
-  var addressList = scala.collection.mutable.MutableList[Address](
-    Address(Some("1st Avenue"), Some("Second Avenue"), Some("Maya City"), Some("Gondura County"), "United Kindom", "UK11 99MB"),
-    Address(Some("1st Road"), Some("Second Road"), Some("Boga City"), Some("Mejo County"), "United Kindom", "UK11 99KK"),
-    Address(Some("Add 3 first road"), Some("Add 3 Second Road"), Some("Boga City"), Some("Mejo County"), "United Kindom", "UK11 99KK"),
-    Address(Some("Add 4 first Road"), Some("Second Road"), Some("Boga City"), Some("Student County"), "United Kindom", "UK11 99KK"),
-    Address(Some("Add 5 1st Road"), Some("Second Road"), Some("Boga City"), Some("Student County"), "United Kindom", "UK11 99KK"),
-    Address(Some("Add 6 1st Road"), Some("Second Road"), Some("Boga City"), Some("Student County"), "United Kindom", "UK11 99KK"),
-    Address(Some("Add 7 1st Road"), Some("Second Road"), Some("Boga City"), Some("Student County"), "United Kindom", "UK11 99KK")
-  )
-
   /*
   * Some helper functions for operations on address
    */
