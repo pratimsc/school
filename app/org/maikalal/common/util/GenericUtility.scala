@@ -22,6 +22,8 @@ import org.joda.time.{DateTime, Hours, Period}
 import play.api.Play
 import play.api.data.Forms._
 import play.api.data.Mapping
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 /**
   * Created by pratimsc on 31/12/15.
@@ -31,6 +33,21 @@ object DateUtility {
   val key_date_format: String = Play.current.configuration.getString("application.date.display.format").getOrElse("YYYY-MM-dd")
 
   def fommattedDate(date: DateTime, format: String = key_date_format): String = DateTimeFormat.forPattern(format).print(date)
+
+  val hourFormMapping: Mapping[Hours] = mapping(
+    "hours" -> number
+  )((h: Int) => Hours.hours(h))((h: Hours) => Some(h.getHours).asInstanceOf[Option[Int]])
+
+  val periodFormMapping: Mapping[Period] = mapping(
+    "period" -> text
+  )((p) => Period.parse(p))((p) => Some(p.toString).asInstanceOf[Option[String]])
+
+  implicit val hourJsonWrites: Writes[Hours] = (__ \ "hours").write[Int].contramap(_.getHours)
+  implicit val hourJsonReads: Reads[Hours] = (__ \ "hours").read[Int].map(Hours.hours _)
+
+  implicit val periodJsonWrites: Writes[Period] = (__ \ "period").write[String].contramap(_.toString)
+  implicit val periodJsonReads: Reads[Period] = (__ \ "period").read[String].map(Period.parse _)
+
 }
 
 object MoneyUtility {
@@ -38,16 +55,20 @@ object MoneyUtility {
     "currency" -> nonEmptyText(minLength = 3, maxLength = 3).transform((c: String) => CurrencyUnit.of(c), (c: CurrencyUnit) => c.toString),
     "amount" -> bigDecimal(10, 2)
   )((c, d) => Money.parse(c.toString + d.toString()))(m => Some((m.getCurrencyUnit, m.getAmount)).asInstanceOf[Option[(CurrencyUnit, BigDecimal)]])
-}
 
-object DateTimeUtility {
-  val hourFormMapping: Mapping[Hours] = mapping(
-    "hours" -> number
-  )((h: Int) => Hours.hours(h))((h: Hours) => Some(h.getHours).asInstanceOf[Option[Int]])
+  implicit val moneyJsonWrites = new Writes[Money] {
+    override def writes(m: Money): JsValue = Json.obj(
+      "currency" -> m.getCurrencyUnit.getCurrencyCode,
+      "amount" -> m.getAmount.doubleValue())
+  }
 
-
-  val periodFormMapping: Mapping[Period] = mapping(
-    "period" -> text
-  )((p) => Period.parse(p))((p) => Some(p.toString).asInstanceOf[Option[String]])
-
+  implicit val moneyJsonReads: Reads[Money] = new Reads[Money] {
+    override def reads(json: JsValue): JsResult[Money] = {
+      try {
+        JsSuccess(Money.of(CurrencyUnit.of((json \ "currency").as[String]), (json \ "amount").as[Double]))
+      } catch {
+        case e: Throwable => JsError(e.getMessage)
+      }
+    }
+  }
 }

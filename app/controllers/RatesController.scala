@@ -32,7 +32,7 @@ class RatesController @Inject()(val messagesApi: MessagesApi, implicit val ws: W
 
 
   def findRateById(rate_id: String, school_id: String) = Action.async { implicit request =>
-    val r = RateHelper.findRateById(rate_id)
+    val r = RateHelper.findRateByIdAndSchool(rate_id, school_id)
     val sc = SchoolHelper.findById(school_id)
     for {
       school <- sc
@@ -43,7 +43,7 @@ class RatesController @Inject()(val messagesApi: MessagesApi, implicit val ws: W
 
   def findAllStudentsByRate(rate_id: String, school_id: String) = Action.async { implicit request =>
     val st = RateHelper.findAllStudentsByRate(rate_id)
-    val r = RateHelper.findRateById(rate_id)
+    val r = RateHelper.findRateByIdAndSchool(rate_id, school_id)
     val sc = SchoolHelper.findById(school_id)
     for {
       school <- sc

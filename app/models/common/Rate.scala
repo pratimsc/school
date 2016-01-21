@@ -22,10 +22,13 @@ import models.common.time.Frequency
 import models.common.time.Frequency.{frequencyJsonReads, frequencyJsonWrites}
 import org.joda.money.Money
 import org.joda.time._
-import org.maikalal.common.util.{ArangodbDatabaseUtility, DateTimeUtility, MoneyUtility}
+import org.maikalal.common.util.DateUtility._
+import org.maikalal.common.util.MoneyUtility._
+import org.maikalal.common.util.{ArangodbDatabaseUtility, MoneyUtility}
 import play.api.Logger
 import play.api.data.Forms._
-import play.api.data.{Forms, Form, Mapping}
+import play.api.data.{Form, Forms, Mapping}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json.Writes._
@@ -34,7 +37,6 @@ import play.api.libs.ws.WSClient
 
 import scala.collection.immutable.List
 import scala.concurrent.Future
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 /**
   * Created by pratimsc on 01/01/16.
@@ -87,8 +89,8 @@ object RateHelper {
   )(FlatRateRegistrationData.apply)(FlatRateRegistrationData.unapply)
 
   private val bandFormMapping: Mapping[Band] = mapping(
-    "lower_limit" -> optional(DateTimeUtility.hourFormMapping),
-    "upper_limit" -> optional(DateTimeUtility.hourFormMapping),
+    "lower_limit" -> optional(hourFormMapping),
+    "upper_limit" -> optional(hourFormMapping),
     "rate" -> MoneyUtility.moneyFormMapping
   )(Band.apply)(Band.unapply)
 
@@ -98,20 +100,11 @@ object RateHelper {
     "chargeOrRebate" -> text(minLength = 1, maxLength = 1),
     "status" -> text(minLength = 1, maxLength = 1),
     "bands" -> Forms.list(bandFormMapping),
-    "period" -> optional(DateTimeUtility.periodFormMapping)
+    "period" -> optional(periodFormMapping)
   )(BandedRateRegistrationData.apply)(BandedRateRegistrationData.unapply)
 
   val flatRateRegistrationForm: Form[FlatRateRegistrationData] = Form(flatRateRegistrationFormMapping)
   val bandedRateRegistrationForm: Form[BandedRateRegistrationData] = Form(bandedRateRegistrationFormMapping)
-
-  implicit val hourJsonWrites: Writes[Hours] = (__ \ "hours").write[Int].contramap(_.getHours)
-  implicit val hourJsonReads: Reads[Hours] = (__ \ "hours").read[Int].map(Hours.hours _)
-
-  implicit val moneyJsonWrites: Writes[Money] = (__).write[String].contramap(_.toString)
-  implicit val moneyJsonReads: Reads[Money] = (__).read[String].map(Money.parse _)
-
-  implicit val periodJsonWrites: Writes[Period] = (__).write[String].contramap(_.toString)
-  implicit val periodJsonReads: Reads[Period] = (__).read[String].map(Period.parse _)
 
   implicit val rateUnitJsonWrites: Writes[RateUnit] = (
     (__ \ "minor").write[Hours] and
@@ -121,6 +114,15 @@ object RateHelper {
     (__ \ "minor").read[Hours] and
       (__ \ "description").read[String]
     ) (RateUnit.apply _)
+
+  //  case class FlatRateRegistrationData(code: String, description: String, chargeOrRebate: String, status: String, price: Money)
+  implicit val flatRateRegistrationDataJsonWrites: Writes[FlatRateRegistrationData] = (
+    (__ \ "code").write[String] and
+      (__ \ "description").write[String] and
+      (__ \ "chargeOrRebate").write[String] and
+      (__ \ "status").write[String] and
+      (__ \ "price").write[Money]
+    ) (unlift(FlatRateRegistrationData.unapply))
 
   implicit val flatRateJsonWrites: Writes[FlatRate] = (
     (__ \ "_id").write[String] and
@@ -150,6 +152,15 @@ object RateHelper {
       (__ \ "rate").read[Money]
     ) (Band.apply _)
 
+  implicit val bandedRateRegistrationDataJsonWrites: Writes[BandedRateRegistrationData] = (
+    (__ \ "code").write[String] and
+      (__ \ "description").write[String] and
+      (__ \ "chargeOrRebate").write[String] and
+      (__ \ "status").write[String] and
+      (__ \ "bands").write[List[Band]] and
+      (__ \ "period").writeNullable[Period]
+    ) (unlift(BandedRateRegistrationData.unapply))
+
   implicit val bandedRateJsonWrites: Writes[BandedRate] = (
     (__ \ "_id").write[String] and
       (__ \ "code").write[String] and
@@ -169,17 +180,6 @@ object RateHelper {
       (__ \ "period").readNullable[Period]
     ) (BandedRate.apply _)
 
-  //case class RateAppliedToStudent(rate_applied_id: String, rate: Rate, status: String, since: DateTime, until: Option[DateTime], count: Option[Long], frequency: Frequency)
-  /*implicit val rateAppliedToStudentJsonWrites: Writes[RateAppliedToStudent] = (
-    (__ \ "_id").write[String] and
-      (__ \ "rate").write[Rate] and
-      (__ \ "status").write[String] and
-      (__ \ "since").write[DateTime] and
-      (__ \ "until").writeNullable[DateTime] and
-      (__ \ "count").writeNullable[Long] and
-      (__ \ "frequency").write[Frequency]
-    ) (unlift(RateAppliedToStudent.unapply))
-*/
   implicit val rateAppliedToStudentJsonWrites: Writes[RateAppliedToStudent] = new Writes[RateAppliedToStudent] {
     override def writes(o: RateAppliedToStudent): JsValue = Json.obj(
       "_id" -> o.rate_applied_id,
@@ -220,31 +220,41 @@ object RateHelper {
     }
   }
 
-  /* implicit val rateAppliedToStudentJsonReads1: Reads[RateAppliedToStudent] = (
-     (__ \ "_id").read[String] and
-       ((__ \ "rate_type").read[String] match {
-         case "F" => (__ \ "rate").read[FlatRate]
-         case "B" => (__ \ "rate").read[BandedRate]
-       }) and
-       (__ \ "status").read[String] and
-       (__ \ "since").read[DateTime] and
-       (__ \ "until").read[DateTime] and
-       (__ \ "count").read[Long] and
-       (__ \ "frequency").read[Frequency]
-     ) (Frequency.parse _)
-
- */
-  def findRateById(rate_id: String)(implicit ws: WSClient): Future[Option[Rate]] = ???
+  def findRateByIdAndSchool(rate_id: String, school_id: String)(implicit ws: WSClient): Future[Option[Rate]] = {
+    val doc = rate_id.split("/").toList.head
+    val aql =
+      s"""
+         |FOR sc in schools
+         |filter sc._id == '${school_id}' && sc.status != '${Reference.STATUS.DELETE}'
+         |FOR e in has_rate
+         |filter e._from == sc._id
+         |FOR rate in ${doc}
+         |filter rate._id == e._to && rate._id == '${rate_id}' && rate.status != '${Reference.STATUS.DELETE}'
+         |return rate
+      """.stripMargin
+    Logger.debug(s"AQL query for getting flat rate is -> ${aql}")
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"Detail of the rate [${rate_id}] based on the school [${school_id}] is -> ${res.json}")
+      val rates: List[Rate] = doc match {
+        case "flatRates" => (res.json \ "result").as[List[FlatRate]]
+        case "bandedRates" => (res.json \ "result").as[List[BandedRate]]
+      }
+      rates match {
+        case h :: t => Some(h)
+        case Nil => None
+      }
+    }
+  }
 
   def findAllRatesBySchool(school_id: String)(implicit ws: WSClient): Future[List[Rate]] = {
     val aql =
       s"""
          |FOR sc in schools
-         |filter sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
+         |filter sc._id == '${school_id}' && sc.status != '${Reference.STATUS.DELETE}'
          |FOR e in has_rate
          |filter e._from == sc._id
          |FOR fr in flatRates
-         |filter fr._id == e._to && fr.status != "${Reference.STATUS.DELETE}"
+         |filter fr._id == e._to && fr.status != '${Reference.STATUS.DELETE}'
          |return fr
       """.stripMargin
     ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
@@ -256,11 +266,9 @@ object RateHelper {
 
   def findAllRatesByStudent(student_id: String)(implicit ws: WSClient): Future[List[Rate]] = ???
 
-  def findAllAppliedRatesByStudent(student_id: String)(implicit ws: WSClient): Future[List[RateAppliedToStudent]] = ???
-
-  def findAllSchoolsByRate(rate_id: String)(implicit ws: WSClient): Future[List[School]] = ???
-
   def findAllStudentsByRate(rate_id: String)(implicit ws: WSClient): Future[List[Student]] = ???
+
+  def findAllAppliedRatesByStudent(student_id: String)(implicit ws: WSClient): Future[List[RateAppliedToStudent]] = ???
 
   def addFlatRate(fr: FlatRateRegistrationData, school_id: String)(implicit ws: WSClient): Future[Some[String]] = {
     val fr_json: JsValue = Json.toJson(fr)
@@ -274,6 +282,7 @@ object RateHelper {
          |  let rel = NEW
          |return {"flatRate":fr, "school":sc, "relation":rel}
       """.stripMargin
+    Logger.debug(s"AQL query for adding flat rate is -> ${Json.prettyPrint(fr_json)}")
     ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
       Logger.debug(s"Details of the flat rate added ->${Json.prettyPrint(res.json)}")
       val result = (res.json \ "result") (0)
@@ -283,6 +292,7 @@ object RateHelper {
       Some(rate_id)
     }
   }
+
 
   def addBandedRate(br: BandedRateRegistrationData, school_id: String)(implicit ws: WSClient): Future[Some[String]] = {
     val br_json: JsValue = Json.toJson(br)

@@ -77,6 +77,7 @@ object Reference {
     "S" -> "Statement of SEN")
   val chargeOrRebateOption = Seq("C" -> "Charge", "R" -> "Rebate")
   val statusList = Seq(STATUS.ACTIVE -> "Active", STATUS.INACTIVE -> "Inactive", STATUS.SUSPENDED -> "Suspended")
+  val currencyList = Seq("GBP" -> "Sterling Pound", "EUR" -> "Euro")
   val periodList = Seq(Period.hours(1).toString -> "Hourly",
     Period.days(1).toString -> "Daily",
     Period.weeks(1).toString -> "Weekly",
