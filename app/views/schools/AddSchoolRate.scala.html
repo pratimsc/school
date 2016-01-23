@@ -1,6 +1,7 @@
 @import helper._
 @import models.common.reference.Reference
 @import models.common.{BandedRateRegistrationData, FlatRateRegistrationData}
+
 @(flatRate: Form[FlatRateRegistrationData], bandedRate: Form[BandedRateRegistrationData], school_id: String)(implicit messages: Messages)
 
 @views.html.common.nuggets.head("Register Rate")
@@ -39,14 +40,58 @@
             @inputText(bandedRate("description"), '_label -> "Description", 'required -> "required", 'tabindex -> "2", 'class -> "form-control", '_showConstraints -> false)
             @inputRadioGroup(bandedRate("chargeOrRebate"), options = Reference.chargeOrRebateOption, '_label -> "Charge/Rebate", 'required -> "required", 'tabindex -> "3", 'class -> "form-control radio-inline", '_showConstraints -> false)
             @select(bandedRate("status"), options = Reference.statusList, '_label -> "Status", 'required -> "required", 'tabindex -> "6", 'class -> "form-control", '_showConstraints -> false)
-            @inputText(bandedRate("price.amount"), '_label -> "Amount", 'required -> "required", 'tabindex -> "4", 'class -> "form-control", '_showConstraints -> false)
-            @select(bandedRate("price.currency"), options = Reference.currencyList, '_label -> "Currency", 'required -> "required", 'tabindex -> "5", 'class -> "form-control", '_showConstraints -> false)
+            @select(bandedRate("period.period"), options = Reference.periodList, '_label -> "Period", 'required -> "required", 'tabindex -> "7", 'class -> "form-control", '_showConstraints -> false)
+            <div id="band-group">
+                <table>
+                    <thead>
+                        <tr>
+                            <td>Lower Limit</td>
+                            <td>Upper Limit</td>
+                            <td>Rate</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @for(i <- 0 to 2) {
+                        <tr>
+                            <td>
+                                <div class="input"><input type="text" name="bands[@i].lower_limit.hours" id="bands[@i].lower_limit.hours" class="form-control" value="0"></div>
+                                @bandedRate.error(s"bands[${i}].lower_limit.hours").map { error =>
+                                    <span class="error">@error.message</span>
+                                }
+
+                            </td>
+                            <td>
+                                <div class="input"><input type="text" name="bands[@i].upper_limit.hours" id="bands[@i].upper_limit.hours" class="form-control" value="0"></div>
+                                @bandedRate.error(s"bands[${i}].upper_limit.hours").map { error =>
+                                    <span class="error">@error.message</span>
+                            }
+                            <td>
+                                <div>
+                                    <input type="text" name="bands[@i].rate.amount" id="bands[@i].rate.amount" class="form-control" value=0.00>
+                                    <select class="form-control" id="bands[@i].rate.currency" name="bands[@i].rate.currency" required=true> @Reference.currencyList.map { e =>
+                                        <option value="@e._1" @if(e._1.equalsIgnoreCase(Reference.currencyList.head._1)) {
+                                            selected="selected"}>@e._1 </option>
+                                    }
+                                    </select>
+                                    @bandedRate.error(s"bands[${i}].rate.amount").map { error =>
+                                        <span class="error">@error.message</span>
+                                    }
+                                    @bandedRate.error(s"bands[${i}].rate.currency").map { error =>
+                                        <span class="error">@error.message</span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
         </div >
         <a class="btn btn-primary" href="@routes.SchoolsController.findAllRatesBySchool(school_id)" role="button">
             Back/Cancel
         </a>
         <input class="btn btn-success" type="submit" value="Register Rates" type="button">
-    }
+        }
     </div>
 </div >
 @views.html.common.nuggets.body_scripts()

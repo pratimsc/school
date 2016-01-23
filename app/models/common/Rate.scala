@@ -73,7 +73,7 @@ case class BandedRateRegistrationData(code: String, description: String, chargeO
 
 case class Band(lower_limit: Option[Hours], upper_limit: Option[Hours], rate: Money) {
   require(lower_limit != None || upper_limit != None, "Both lower and upper limits can not be None.")
-  require(lower_limit != upper_limit, "Lower limit should be same as the upper limit.")
+  //require(lower_limit != upper_limit, "Lower limit should not be same as the upper limit.")
 }
 
 case class RateAppliedToStudent(rate_applied_id: String, rate: Rate, status: String, since: DateTime, until: Option[DateTime], count: Option[Long], frequency: Frequency)
@@ -306,6 +306,7 @@ object RateHelper {
          |  let rel = NEW
          |return {"bandedRate":br, "school":sc, "relation":rel}
       """.stripMargin
+    Logger.debug(s"AQL query for adding flat rate is -> ${Json.prettyPrint(br_json)}")
     ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
       Logger.debug(s"Details of the banded rate added ->${Json.prettyPrint(res.json)}")
       val result = (res.json \ "result") (0)

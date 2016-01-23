@@ -10,7 +10,7 @@ scalaVersion := "2.11.7"
 
 routesGenerator := InjectedRoutesGenerator
 
-libraryDependencies ++= Seq(jdbc, cache, ws, specs2 % Test,
+libraryDependencies ++= Seq(jdbc, cache, ws, filters, specs2 % Test,
   "joda-time" % "joda-time" % "2.9.1",
   "org.joda" % "joda-money" % "0.10.0"
   //"com.typesafe.play" %% "anorm" % "2.5.0",

@@ -187,7 +187,7 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
     * @return
     */
   def addRate(school_id: String, rateType: Char) = Action { implicit request =>
-    Logger.debug(s" The rate tpe is '${rateType}' and request body is -> ${request.body.asFormUrlEncoded}")
+    Logger.debug(s" The rate type is '${rateType}' and request body is -> ${request.body.asFormUrlEncoded}")
 
     rateType match {
       case 'F' =>
@@ -206,8 +206,12 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
         )
       case 'B' =>
         RateHelper.bandedRateRegistrationForm.bindFromRequest().fold(
-          formsWithError => BadRequest(views.html.schools.AddSchoolRate(RateHelper.flatRateRegistrationForm, formsWithError, school_id)),
+          formsWithError => {
+            Logger.debug(s"Registering the banded rate has errors-${formsWithError.errorsAsJson}")
+            BadRequest(views.html.schools.AddSchoolRate(RateHelper.flatRateRegistrationForm, formsWithError, school_id))
+          },
           bandedRateRegData => {
+            Logger.debug(s"Registering the banded rate -${bandedRateRegData}")
             Await.result(RateHelper.addBandedRate(bandedRateRegData, school_id), Duration.Inf) match {
               case Some(rate_id) => Redirect(routes.SchoolsController.findAllRatesBySchool(school_id))
               case _ => BadRequest(views.html.schools.AddSchoolRate(RateHelper.flatRateRegistrationForm, RateHelper.bandedRateRegistrationForm, school_id))
