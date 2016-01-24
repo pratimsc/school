@@ -20,7 +20,7 @@ import models.common.AddressHelper.{addressJsonReads, addressJsonWrites}
 import models.common.reference.Reference
 import models.common.{Address, AddressHelper}
 import org.maikalal.common.util.ArangodbDatabaseUtility
-import org.maikalal.common.util.ArangodbDatabaseUtility.DBDocuments
+import org.maikalal.common.util.ArangodbDatabaseUtility.{DBDocuments, DBEdges}
 import play.api.Logger
 import play.api.data.Forms._
 import play.api.data._
