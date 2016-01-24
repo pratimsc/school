@@ -50,17 +50,6 @@ object Reference {
     val MIXED_WHITE_AND_ASIAN = "MWAS"
   }
 
-  object DatabaseVertex {
-    val SCHOOL = "schools"
-    val STUDENT = "students"
-    val RATE = "rates"
-    val TIMESHEET = "timesheets"
-  }
-
-  object DatabaseEdges {
-    val SCHOOL_ENROLLED_STUDENT = "enrolled"
-  }
-
   val genderList = Seq(Gender.MALE -> "Male", Gender.FEMALE -> "Female")
   val guardianStudentRelationshipList = Seq("GSR01" -> "Father",
     "GSR02" -> "Mother",

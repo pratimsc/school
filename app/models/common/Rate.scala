@@ -22,6 +22,7 @@ import models.common.time.Frequency
 import models.common.time.Frequency.{frequencyJsonReads, frequencyJsonWrites}
 import org.joda.money.Money
 import org.joda.time._
+import org.maikalal.common.util.ArangodbDatabaseUtility.{DBDocuments, DBEdges}
 import org.maikalal.common.util.DateUtility._
 import org.maikalal.common.util.MoneyUtility._
 import org.maikalal.common.util.{ArangodbDatabaseUtility, MoneyUtility}
@@ -224,9 +225,9 @@ object RateHelper {
     val doc = rate_id.split("/").toList.head
     val aql =
       s"""
-         |FOR sc in schools
+         |FOR sc in ${DBDocuments.SCHOOLS}
          |filter sc._id == '${school_id}' && sc.status != '${Reference.STATUS.DELETE}'
-         |FOR e in has_rate
+         |FOR e in ${DBEdges.SCHOOL_HAS_RATE}
          |filter e._from == sc._id
          |FOR rate in ${doc}
          |filter rate._id == e._to && rate._id == '${rate_id}' && rate.status != '${Reference.STATUS.DELETE}'
@@ -249,11 +250,11 @@ object RateHelper {
   def findAllRatesBySchool(school_id: String)(implicit ws: WSClient): Future[List[Rate]] = {
     val aql =
       s"""
-         |FOR sc in schools
+         |FOR sc in ${DBDocuments.SCHOOLS}
          |filter sc._id == '${school_id}' && sc.status != '${Reference.STATUS.DELETE}'
-         |FOR e in has_rate
+         |FOR e in ${DBEdges.SCHOOL_HAS_RATE}
          |filter e._from == sc._id
-         |FOR fr in flatRates
+         |FOR fr in ${DBDocuments.FLAT_RATES}
          |filter fr._id == e._to && fr.status != '${Reference.STATUS.DELETE}'
          |return fr
       """.stripMargin
@@ -274,11 +275,11 @@ object RateHelper {
     val fr_json: JsValue = Json.toJson(fr)
     val aql =
       s"""
-         |FOR sc in schools
+         |FOR sc in ${DBDocuments.SCHOOLS}
          |  FILTER sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
-         |  INSERT ${fr_json} in flatRates
+         |  INSERT ${fr_json} in ${DBDocuments.FLAT_RATES}
          |  let fr = NEW
-         |  INSERT {"_from":sc._id, "_to":fr._id}in has_rate
+         |  INSERT {"_from":sc._id, "_to":fr._id}in ${DBEdges.SCHOOL_HAS_RATE}
          |  let rel = NEW
          |return {"flatRate":fr, "school":sc, "relation":rel}
       """.stripMargin
@@ -298,11 +299,11 @@ object RateHelper {
     val br_json: JsValue = Json.toJson(br)
     val aql =
       s"""
-         |FOR sc in schools
+         |FOR sc in ${DBDocuments.SCHOOLS}
          |  FILTER sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
-         |  INSERT ${br_json} in bandedRates
+         |  INSERT ${br_json} in ${DBDocuments.BANDED_RATES}
          |  let br = NEW
-         |  INSERT {"_from":sc._id, "_to":br._id}in has_rate
+         |  INSERT {"_from":sc._id, "_to":br._id}in ${DBEdges.SCHOOL_HAS_RATE}
          |  let rel = NEW
          |return {"bandedRate":br, "school":sc, "relation":rel}
       """.stripMargin

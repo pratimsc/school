@@ -60,4 +60,24 @@ object ArangodbDatabaseUtility {
     Logger.debug(s"AQL Query ->\n [${aql_json}]")
     aql_json
   }
+
+  object DBDocuments {
+    val SCHOOLS = "schools"
+    val STUDENTS = "students"
+    val GUARDIANS = "guardians"
+    val FLAT_RATES = "flatRates"
+    val BANDED_RATES = "bandedRates"
+    val TERMS = "terms"
+    val TIMESHEETS_DAILY = "timesheetsDaily"
+    val TIMESHEETS_WEEKLY = "timesheetsWeekly"
+  }
+
+  object DBEdges {
+    val SCHOOL_ENROLLED_STUDENT = "enrolled"
+    val SCHOOL_DEALS_WITH_GUARDIAN = "deals_with"
+    val SCHOOL_HAS_RATE = "has_rate"
+    val STUDENT_RELATED_TO_GUARDIAN = "related_to"
+  }
+
+
 }

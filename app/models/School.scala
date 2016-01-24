@@ -20,6 +20,7 @@ import models.common.AddressHelper.{addressJsonReads, addressJsonWrites}
 import models.common.reference.Reference
 import models.common.{Address, AddressHelper}
 import org.maikalal.common.util.ArangodbDatabaseUtility
+import org.maikalal.common.util.ArangodbDatabaseUtility.DBDocuments
 import play.api.Logger
 import play.api.data.Forms._
 import play.api.data._
@@ -70,8 +71,8 @@ object SchoolHelper {
   def findAll()(implicit ws: WSClient): Future[List[School]] = {
     Logger.debug(s"Get data for All schools")
     val json = Json.obj("query" ->
-      """
-        |FOR sc in schools FILTER sc.status != "D" RETURN sc
+      s"""
+         |FOR sc in ${DBDocuments.SCHOOLS} FILTER sc.status != "D" RETURN sc
       """.stripMargin)
     Logger.debug(s"Cursor Query ->\n [${json}]")
     ArangodbDatabaseUtility.databaseCursor.post(json).map { res =>
@@ -110,11 +111,11 @@ object SchoolHelper {
   def findAllSchoolsByGuardianId(guardian_id: String)(implicit ws: WSClient): Future[List[School]] = {
     val aql =
       s"""
-         |FOR gu in guardians
+         |FOR gu in ${DBDocuments.GUARDIANS}
          |filter gu._id == "${guardian_id}"  && gu.status != "${Reference.STATUS.DELETE}"
-         |FOR e in deals_with
+         |FOR e in ${DBDocuments.SCHOOLS}
          |filter e._to == gu._id
-         |FOR sc in schools
+         |FOR sc in ${DBEdges.SCHOOL_DEALS_WITH_GUARDIAN}
          |filter sc._id == e._from && sc.status != "${Reference.STATUS.DELETE}"
          |return sc
       """.stripMargin
@@ -129,7 +130,7 @@ object SchoolHelper {
     val sc_json: JsValue = Json.toJson(s).as[JsObject] +("status", JsString(Reference.STATUS.ACTIVE))
     val aql =
       s"""
-         |INSERT ${sc_json} in schools
+         |INSERT ${sc_json} in ${DBDocuments.SCHOOLS}
          |  LET sc = NEW
          |RETURN sc
       """.stripMargin

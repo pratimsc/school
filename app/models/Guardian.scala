@@ -21,6 +21,7 @@ import models.common.NameHelper.{nameJsonReads, nameJsonWrites}
 import models.common._
 import models.common.reference.Reference
 import org.maikalal.common.util.ArangodbDatabaseUtility
+import org.maikalal.common.util.ArangodbDatabaseUtility.{DBDocuments, DBEdges}
 import play.api.Logger
 import play.api.data.Form
 import play.api.data.Forms._
@@ -100,11 +101,11 @@ object GuardianHelper {
   def findAllBySchool(school_id: String)(implicit ws: WSClient): Future[List[Guardian]] = {
     val aql =
       s"""
-         |FOR sc in schools
+         |FOR sc in ${DBDocuments.SCHOOLS}
          |filter sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
-         |FOR e in deals_with
+         |FOR e in ${DBEdges.SCHOOL_DEALS_WITH_GUARDIAN}
          |filter e._from == sc._id
-         |FOR gu in guardians
+         |FOR gu in ${DBDocuments.GUARDIANS}
          |filter gu._id == e._to && gu.status != "${Reference.STATUS.DELETE}"
          |return gu
       """.stripMargin
@@ -118,11 +119,11 @@ object GuardianHelper {
   def findAllByStudent(student_id: String)(implicit ws: WSClient): Future[List[Guardian]] = {
     val aql =
       s"""
-         |FOR st in students
+         |FOR st in ${DBDocuments.SCHOOLS}
          |filter st._id == "${student_id}" && st.status != "${Reference.STATUS.DELETE}"
-         |FOR e in related_to
+         |FOR e in ${DBEdges.STUDENT_RELATED_TO_GUARDIAN}
          |filter e._from == st._id
-         |FOR gu in guardians
+         |FOR gu in ${DBDocuments.GUARDIANS}
          |filter gu._id == e._to && gu.status != "${Reference.STATUS.DELETE}"
          |return gu
       """.stripMargin
@@ -136,7 +137,7 @@ object GuardianHelper {
   def findById(guardian_id: String)(implicit ws: WSClient): Future[Option[Guardian]] = {
     val aql =
       s"""
-         |FOR gu in guardians
+         |FOR gu in ${DBDocuments.GUARDIANS}
          |filter gu._id == '${guardian_id}' && gu.status != "${Reference.STATUS.DELETE}"
          |return gu
       """.stripMargin
@@ -153,11 +154,11 @@ object GuardianHelper {
   def findByIdAndSchool(guardian_id: String, school_id: String)(implicit ws: WSClient): Future[Option[Guardian]] = {
     val aql =
       s"""
-         |FOR sc in schools
+         |FOR sc in ${DBDocuments.SCHOOLS}
          |filter sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
-         |FOR e in deals_with
+         |FOR e in ${DBEdges.SCHOOL_DEALS_WITH_GUARDIAN}
          |filter e._from == sc._id
-         |FOR gu in guardians
+         |FOR gu in ${DBDocuments.GUARDIANS}
          |filter gu._id == e._to && gu._id == "${guardian_id}"  && gu.status != "${Reference.STATUS.DELETE}"
          |return gu
       """.stripMargin
@@ -175,15 +176,15 @@ object GuardianHelper {
     val g_json: JsValue = Json.toJson(g).as[JsObject] +("status", JsString(Reference.STATUS.ACTIVE))
     val aql =
       s"""
-         |FOR sc in schools
+         |FOR sc in ${DBDocuments.SCHOOLS}
          |  FILTER sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
-         |  FOR st in students
+         |  FOR st in ${DBDocuments.STUDENTS}
          |  FILTER st._id == "${student_id}" && st.status != "${Reference.STATUS.DELETE}"
-         |  INSERT ${g_json} in guardians
+         |  INSERT ${g_json} in ${DBDocuments.GUARDIANS}
          |  let gu = NEW
-         |  INSERT {"_from":sc._id, "_to":gu._id}in deals_with
+         |  INSERT {"_from":sc._id, "_to":gu._id}in ${DBEdges.SCHOOL_DEALS_WITH_GUARDIAN}
          |  let rel1 = NEW
-         |  INSERT {"_from":st._id, "_to":gu._id} in related_to
+         |  INSERT {"_from":st._id, "_to":gu._id} in ${DBEdges.STUDENT_RELATED_TO_GUARDIAN}
          |  let rel2 = NEW
          |return {"school":sc, "relation_1":rel1, "student":st, "relation_2":rel2, "guardian":gu}
       """.stripMargin
