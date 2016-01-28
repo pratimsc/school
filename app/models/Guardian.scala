@@ -119,7 +119,7 @@ object GuardianHelper {
   def findAllByStudent(student_id: String)(implicit ws: WSClient): Future[List[Guardian]] = {
     val aql =
       s"""
-         |FOR st in ${DBDocuments.SCHOOLS}
+         |FOR st in ${DBDocuments.STUDENTS}
          |filter st._id == "${student_id}" && st.status != "${Reference.STATUS.DELETE}"
          |FOR e in ${DBEdges.STUDENT_RELATED_TO_GUARDIAN}
          |filter e._from == st._id

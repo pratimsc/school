@@ -113,9 +113,9 @@ object SchoolHelper {
       s"""
          |FOR gu in ${DBDocuments.GUARDIANS}
          |filter gu._id == "${guardian_id}"  && gu.status != "${Reference.STATUS.DELETE}"
-         |FOR e in ${DBDocuments.SCHOOLS}
+         |FOR e in ${DBEdges.SCHOOL_DEALS_WITH_GUARDIAN}
          |filter e._to == gu._id
-         |FOR sc in ${DBEdges.SCHOOL_DEALS_WITH_GUARDIAN}
+         |FOR sc in ${DBDocuments.SCHOOLS}
          |filter sc._id == e._from && sc.status != "${Reference.STATUS.DELETE}"
          |return sc
       """.stripMargin

@@ -249,19 +249,32 @@ object RateHelper {
 
   def findAllRatesBySchool(school_id: String)(implicit ws: WSClient): Future[List[Rate]] = {
     val aql =
-      s"""
-         |FOR sc in ${DBDocuments.SCHOOLS}
-         |filter sc._id == '${school_id}' && sc.status != '${Reference.STATUS.DELETE}'
-         |FOR e in ${DBEdges.SCHOOL_HAS_RATE}
-         |filter e._from == sc._id
-         |FOR fr in ${DBDocuments.FLAT_RATES}
-         |filter fr._id == e._to && fr.status != '${Reference.STATUS.DELETE}'
-         |return fr
+      s"""LET br = (
+          |    FOR sc in ${DBDocuments.SCHOOLS}
+          |    FILTER sc._id == '${school_id}' && sc.status != '${Reference.STATUS.DELETE}'
+          |    FOR e in ${DBEdges.SCHOOL_HAS_RATE}
+          |    FILTER e._from == sc._id
+          |    FOR br in ${DBDocuments.BANDED_RATES}
+          |    FILTER e._to == br._id && br.status != '${Reference.STATUS.DELETE}'
+          |    RETURN br
+          |)
+          |LET fr = (
+          |    FOR sc in ${DBDocuments.SCHOOLS}
+          |    FILTER sc._id == '${school_id}' && sc.status != '${Reference.STATUS.DELETE}'
+          |    FOR e in ${DBEdges.SCHOOL_HAS_RATE}
+          |    FILTER e._from == sc._id
+          |    FOR fr in ${DBDocuments.FLAT_RATES}
+          |    FILTER e._to == fr._id && fr.status != '${Reference.STATUS.DELETE}'
+          |    RETURN fr
+          |)
+          |RETURN {"${DBDocuments.FLAT_RATES}":fr, "${DBDocuments.BANDED_RATES}":br}
       """.stripMargin
     ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
       Logger.debug(s"List of the rates based on the school [${school_id}] is -> ${res.json}")
-      val rates: List[FlatRate] = (res.json \ "result").as[List[FlatRate]]
-      rates
+      val result: JsLookupResult = (res.json \ "result") (0)
+      val fr: List[FlatRate] = (result \ DBDocuments.FLAT_RATES).as[List[FlatRate]]
+      val br: List[BandedRate] = (result \ DBDocuments.BANDED_RATES).as[List[BandedRate]]
+      fr ::: br
     }
   }
 

@@ -1,5 +1,4 @@
-@import models.common.{FlatRate, Rate}
-
+@import models.common.{BandedRate, FlatRate, Rate}
 @(rt: Option[Rate], sc: Option[School])(implicit messages: Messages)
 
 @(rt, sc) match {
@@ -22,54 +21,51 @@
             </div>
 
             <div id="rate_pricing">
-            @rate.rate_id.split("/").toList.head match {
-                case "flatRates" => {
-
-
+            @rate match {
+                case f: FlatRate => {
                     <div id="flat_rate">
-                        <label>Value</label> @(rate.isInstanceOf[FlatRate]).price
+                        <label>Value</label> @f.price
                     </div>
                 }
-                case "bandedRates" => {
-                    @* @if(rate.isInstanceOf[BandedRate] == true) {
-                    <div id="banded_rate">
-                    <label>Banded Rate</label>
-                    <table class="table-striped">
-                    <thead>
-                    <tr>
-                    <th>Lower Limit</th>
-                    <th>Upper Limit</th>
-                    <th>Rate</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @rate.asInstanceOf[BandedRate].bands.map{b =>
-                    <tr>
-                    <td>@b.lower_limit match {
-                    case Some(h) => {
-                    @h.getHours
-                    }
-                    case None => {
-                    None
-                    }
-                    }
-                    </td>
-                    <td>@b.upper_limit match {
-                    case Some(h) => {
-                    @h.getHours
-                    }
-                    case None => {
-                    None
-                    }
-                    }</td>
-                    <td>@b.rate</td>
-                    </tr>
+                case b: BandedRate => {
 
-                    }
-                    </tbody>
-                    </table>
+                    <div id="banded_rate">
+                        <label>Banded Rate</label>
+                        <table class="table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Lower Limit</th>
+                                    <th>Upper Limit</th>
+                                    <th>Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @b.bands.map { band =>
+                                <tr>
+                                    <td>@band.lower_limit match {
+                                        case Some(h) => {
+                                            @h.getHours
+                                        }
+                                        case None => {
+                                            None
+                                        }
+                                    }
+                                    </td>
+                                    <td>@band.upper_limit match {
+                                        case Some(h) => {
+                                            @h.getHours
+                                        }
+                                        case None => {
+                                            None
+                                        }
+                                    }</td>
+                                    <td>@band.rate</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
                     </div>
-                    }*@
+
                 }
             }
             </div>

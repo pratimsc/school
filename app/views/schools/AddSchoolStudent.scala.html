@@ -23,7 +23,7 @@
 
     <div class="form-group">
     @inputDate(addStudentForm("date_of_birth"),
-        '_label -> "Relationship", 'required -> "required", 'size -> 10, 'tabindex -> "4", '_showConstraints -> false)
+        '_label -> "Date Of Birth", 'required -> "required", 'size -> 10, 'tabindex -> "4", '_showConstraints -> false)
     </div>
 
     <div class="form-group">
@@ -45,7 +45,7 @@
     </div>
 
     <div class="form-group">
-        <label> Guardian Address</label>
+        <label> Student Address</label>
         @inputText(addStudentForm("address.first_line"), '_label -> "Line 1", 'tabindex -> "8", '_showConstraints -> false)
         @inputText(addStudentForm("address.second_line"), '_label -> "Line 2", 'tabindex -> "9", '_showConstraints -> false)
         @inputText(addStudentForm("address.city"), '_label -> "City/Village", 'tabindex -> "0", '_showConstraints -> false)
