@@ -1,0 +1,30 @@
+@import models.common.Holiday
+@import org.maikalal.common.util.DateUtility
+@(hl: Option[Holiday], sc: Option[School])(implicit messages: Messages)
+
+@(hl, sc) match {
+    case (Some(holiday), Some(school)) => {
+        <div id="holiday_detail">
+            <div>
+                <label>Student Id </label> @holiday.holiday_id
+                <label>Description</label> @holiday.description
+                <label>Date</label> @DateUtility.fommattedDate(holiday.date)
+                <label> Status</label> @holiday.status
+            </div>
+            <div id="student_school_summary">
+                <label>Associated School </label> @school.school_name
+                <a class="btn btn-primary" href="@routes.SchoolsController.findById(school.school_id)" role="button">
+                    View School</a>
+            </div>
+            <div id="holiday_permitted_actions">
+                <div id="student_permitted_actions_update">
+                    <a class="btn btn-warning" href="#" role="button">Edit</a>
+                </div>
+            </div>
+        </div>
+    }
+    case _ => {
+        <div>@Messages("schools.holidays.detail.nodata")</div>
+    }
+
+}

@@ -31,8 +31,11 @@ schools.students.detail.applied.rates.nodata=No charges/rebates has been applied
 schools.students.detail.applied.rates.until.infinity=Never
 schools.students.detail.applied.rates.count.none=None
 
+#Holidays
+schools.holidays.list.nodata=No holidays are registered. Please use the available options for registering a holiday.
+schools.holidays.detail.nodata=No holidays are registered. Please use the available options for registering a holiday.
 #Terms
-school.terms.nodata=No terms are registered. Please use the available optios for registering a term.
+school.terms.nodata=No terms are registered. Please use the available options for registering a term.
 
 #Timesheets
 schools.students.detail.timesheet.weekly.nodata=No weekly timesheets created

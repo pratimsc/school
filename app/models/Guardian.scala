@@ -102,11 +102,11 @@ object GuardianHelper {
     val aql =
       s"""
          |FOR sc in ${DBDocuments.SCHOOLS}
-         |filter sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
+         |filter sc._id == "${school_id}" && sc.status != "${Reference.Status.DELETE}"
          |FOR e in ${DBEdges.SCHOOL_DEALS_WITH_GUARDIAN}
          |filter e._from == sc._id
          |FOR gu in ${DBDocuments.GUARDIANS}
-         |filter gu._id == e._to && gu.status != "${Reference.STATUS.DELETE}"
+         |filter gu._id == e._to && gu.status != "${Reference.Status.DELETE}"
          |return gu
       """.stripMargin
     ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
@@ -120,11 +120,11 @@ object GuardianHelper {
     val aql =
       s"""
          |FOR st in ${DBDocuments.STUDENTS}
-         |filter st._id == "${student_id}" && st.status != "${Reference.STATUS.DELETE}"
+         |filter st._id == "${student_id}" && st.status != "${Reference.Status.DELETE}"
          |FOR e in ${DBEdges.STUDENT_RELATED_TO_GUARDIAN}
          |filter e._from == st._id
          |FOR gu in ${DBDocuments.GUARDIANS}
-         |filter gu._id == e._to && gu.status != "${Reference.STATUS.DELETE}"
+         |filter gu._id == e._to && gu.status != "${Reference.Status.DELETE}"
          |return gu
       """.stripMargin
     ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
@@ -138,7 +138,7 @@ object GuardianHelper {
     val aql =
       s"""
          |FOR gu in ${DBDocuments.GUARDIANS}
-         |filter gu._id == '${guardian_id}' && gu.status != "${Reference.STATUS.DELETE}"
+         |filter gu._id == '${guardian_id}' && gu.status != "${Reference.Status.DELETE}"
          |return gu
       """.stripMargin
     ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
@@ -155,11 +155,11 @@ object GuardianHelper {
     val aql =
       s"""
          |FOR sc in ${DBDocuments.SCHOOLS}
-         |filter sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
+         |filter sc._id == "${school_id}" && sc.status != "${Reference.Status.DELETE}"
          |FOR e in ${DBEdges.SCHOOL_DEALS_WITH_GUARDIAN}
          |filter e._from == sc._id
          |FOR gu in ${DBDocuments.GUARDIANS}
-         |filter gu._id == e._to && gu._id == "${guardian_id}"  && gu.status != "${Reference.STATUS.DELETE}"
+         |filter gu._id == e._to && gu._id == "${guardian_id}"  && gu.status != "${Reference.Status.DELETE}"
          |return gu
       """.stripMargin
     ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
@@ -173,13 +173,13 @@ object GuardianHelper {
   }
 
   def addGuardian(g: GuardianRegistrationData, student_id: String, school_id: String)(implicit ws: WSClient): Future[Option[String]] = {
-    val g_json: JsValue = Json.toJson(g).as[JsObject] +("status", JsString(Reference.STATUS.ACTIVE))
+    val g_json: JsValue = Json.toJson(g).as[JsObject] +("status", JsString(Reference.Status.ACTIVE))
     val aql =
       s"""
          |FOR sc in ${DBDocuments.SCHOOLS}
-         |  FILTER sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
+         |  FILTER sc._id == "${school_id}" && sc.status != "${Reference.Status.DELETE}"
          |  FOR st in ${DBDocuments.STUDENTS}
-         |  FILTER st._id == "${student_id}" && st.status != "${Reference.STATUS.DELETE}"
+         |  FILTER st._id == "${student_id}" && st.status != "${Reference.Status.DELETE}"
          |  INSERT ${g_json} in ${DBDocuments.GUARDIANS}
          |  let gu = NEW
          |  INSERT {"_from":sc._id, "_to":gu._id}in ${DBEdges.SCHOOL_DEALS_WITH_GUARDIAN}

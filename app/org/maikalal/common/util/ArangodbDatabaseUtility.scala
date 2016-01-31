@@ -70,12 +70,15 @@ object ArangodbDatabaseUtility {
     val TERMS = "terms"
     val TIMESHEETS_DAILY = "timesheetsDaily"
     val TIMESHEETS_WEEKLY = "timesheetsWeekly"
+    val HOLIDAYS = "holidays"
   }
 
   object DBEdges {
     val SCHOOL_ENROLLED_STUDENT = "enrolled"
     val SCHOOL_DEALS_WITH_GUARDIAN = "deals_with"
     val SCHOOL_HAS_RATE = "has_rate"
+    val SCHOOL_HAS_HOLIDAY = "has_holiday"
+    val SCHOOL_HAS_TERM = "has_term"
     val STUDENT_RELATED_TO_GUARDIAN = "related_to"
   }
 

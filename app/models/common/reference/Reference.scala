@@ -24,13 +24,38 @@ import org.joda.time.{DateTime, Hours, Period}
 object Reference {
   val DAILY_TIMESHEET_INITIAL_HOURS = Hours.hours(0)
 
-  object STATUS {
+  object Status {
     val ACTIVE = "A"
     val DELETE = "D"
     val INACTIVE = "I"
     val SUSPENDED = "S"
     val BEING_PROCESSED = "P"
     val HISTORICAL = "H"
+  }
+
+  object TimeSheetStatus {
+    val DRAFT = "DRFT"
+    val SUBMITED = "SBMT"
+    val CLOSED = "CLSD"
+    val CANCELLED = "CNCL"
+  }
+
+  object Term {
+
+    object Timesheet {
+      val ABSENT = "ACTV"
+      val CREATED = "DRFT"
+      val SUBMITED = "SBMT"
+      val CLOSED = "CLSD"
+    }
+
+    object Invoice {
+      val COMPLETE = "CMPLT"
+      val PARTIAL = "IPRT"
+      val PENDING = "PNDG"
+      val READY = "RDY"
+    }
+
   }
 
   object AddressType {
@@ -65,7 +90,7 @@ object Reference {
     "EYAP" -> "Early years action / school plus",
     "S" -> "Statement of SEN")
   val chargeOrRebateOption = Seq("C" -> "Charge", "R" -> "Rebate")
-  val statusList = Seq(STATUS.ACTIVE -> "Active", STATUS.INACTIVE -> "Inactive", STATUS.SUSPENDED -> "Suspended")
+  val statusList = Seq(Status.ACTIVE -> "Active", Status.INACTIVE -> "Inactive", Status.SUSPENDED -> "Suspended")
   val currencyList = Seq("GBP" -> "Sterling Pound", "EUR" -> "Euro")
   val periodList = Seq(Period.hours(1).toString -> "Hourly",
     Period.days(1).toString -> "Daily",

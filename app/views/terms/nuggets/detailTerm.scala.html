@@ -1,54 +1,60 @@
 @import models.common.Term
+@import models.common.reference.Reference
 @import org.maikalal.common.util.DateUtility
-
 @(t: Option[Term], s: Option[School])(implicit messages: Messages)
 
-@t match {
-    case Some(term) => {
-        <div id="term_detail">
-            <div>
-                <p>
-                    <label>Term Id </label> @term.term_id
-                </p>
-            </div>
-            <div id="term_period">
-                <label>Start Date</label> @DateUtility.fommattedDate(term.begin)
-                <label>End Date</label> @DateUtility.fommattedDate(term.finish)
-            </div>
-            <div>
-                <label>Status</label> @term.status
-            </div>
-            @s match {
-                case Some(school) => {
+    @t match {
+        case Some(term) => {
+            <div id="term_detail">
+                <div>
+                    <p>
+                        <label>Term Id </label> @term.term_id
+                    </p>
+                </div>
+                <div id="term_period">
+                    <label>Start Date</label> @DateUtility.fommattedDate(term.begin)
+                    <label>End Date</label> @DateUtility.fommattedDate(term.finish)
+                </div>
+                <div>
+                    <label>Status</label> @term.status
+                </div>
+                @s.map { school =>
                     <div id="term_school_summary">
                         <label>Associated School </label> @school.school_name
-                        <a class="btn btn-primary" href="@routes.SchoolsController.findById(school.school_id)" role="button">View School</a>
+                    <a class="btn btn-primary" href="@routes.SchoolsController.findById(school.school_id)" role="button">
+                        View School</a>
                     </div>
                 }
-                case None => {}
-            }
-
-            <div id="term_permitted_actions">
-                @s match {
-                    case Some(school) => {
+                <div id="term_permitted_actions">
+                    @s.map { school =>
                         <div id="term_permitted_actions_view">
-                            <a class="btn btn-primary" href="@routes.TermsController.findAllTimesheetsByTermAndSchool(term.term_id, school.school_id)" role="button">Time Sheets</a>
+                            <a class="btn btn-primary" href="@routes.TermsController.findAllTimesheetsByTermAndSchool(term.term_id, school.school_id)" role="button">
+                                Time Sheets</a>
                         </div>
                     }
-                    case None => {}
-                }
+                <div id="term_permitted_actions_update">
+                    <a class="btn btn-warning" href="#" role="button">Edit</a>
+                    @term.timesheet match {
+                        case Reference.Term.Timesheet.ABSENT => {
+                            <a class="btn btn-warning" href="#" role="button">Generate TimeSheets</a>
+                        }
+                        case Reference.Term.Timesheet.CREATED => {
+                            <a class="btn btn-warning" href="#" role="button">Check Timesheet Submission</a>
+                        }
+                        case Reference.Term.Timesheet.SUBMITED => {
+                            <a class="btn btn-warning" href="#" role="button">Generate Invoice</a>
+                        }
+                    }
 
-            <div id="term_permitted_actions_update">
-                <a class="btn btn-warning" href="#" role="button">Edit</a>
+                </div>
+                <div id="term_permitted_actions_add">
+                    <a class="btn btn-default" href="#" role="button">Add Time Sheets</a>
+                </div>
+                </div>
             </div>
-            <div id="term_permitted_actions_add">
-                <a class="btn btn-default" href="#" role="button">Add Time Sheets</a>
-            </div>
-            </div>
-        </div>
-    }
-    case None => {
-        <div>@Messages("schools.terms.detail.nodata")</div>
-    }
+        }
+        case None => {
+            <div>@Messages("schools.terms.detail.nodata")</div>
+        }
 
-}
+    }

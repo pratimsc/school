@@ -1,0 +1,8 @@
+@import models.common.Holiday
+@(holiday: Option[Holiday], school: Option[School])(implicit messages: Messages)
+
+@views.html.common.nuggets.head("Holiday Detail View")
+
+@views.html.holidays.nuggets.detailHoliday(holiday, school)
+
+@views.html.common.nuggets.body_scripts()

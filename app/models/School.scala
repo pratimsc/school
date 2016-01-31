@@ -112,11 +112,11 @@ object SchoolHelper {
     val aql =
       s"""
          |FOR gu in ${DBDocuments.GUARDIANS}
-         |filter gu._id == "${guardian_id}"  && gu.status != "${Reference.STATUS.DELETE}"
+         |filter gu._id == "${guardian_id}"  && gu.status != "${Reference.Status.DELETE}"
          |FOR e in ${DBEdges.SCHOOL_DEALS_WITH_GUARDIAN}
          |filter e._to == gu._id
          |FOR sc in ${DBDocuments.SCHOOLS}
-         |filter sc._id == e._from && sc.status != "${Reference.STATUS.DELETE}"
+         |filter sc._id == e._from && sc.status != "${Reference.Status.DELETE}"
          |return sc
       """.stripMargin
     ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
@@ -127,7 +127,7 @@ object SchoolHelper {
   }
 
   def addSchool(s: SchoolRegistration)(implicit ws: WSClient): Future[Option[String]] = {
-    val sc_json: JsValue = Json.toJson(s).as[JsObject] +("status", JsString(Reference.STATUS.ACTIVE))
+    val sc_json: JsValue = Json.toJson(s).as[JsObject] +("status", JsString(Reference.Status.ACTIVE))
     val aql =
       s"""
          |INSERT ${sc_json} in ${DBDocuments.SCHOOLS}

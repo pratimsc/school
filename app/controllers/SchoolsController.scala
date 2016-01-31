@@ -82,10 +82,14 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
   }
 
   def findAllTermsBySchool(school_id: String) = Action.async { implicit request =>
-    SchoolHelper.findById(school_id).map { school =>
-      val rates: List[Term] = TermHelper.findAllBySchool(school_id)
-      Ok(views.html.schools.SchoolTermsListView(rates, school))
+    val sc = SchoolHelper.findById(school_id)
+    val tr = TermHelper.findAllBySchool(school_id)
+    for {
+      school <- sc
+      terms <- tr
     }
+      yield
+        Ok(views.html.schools.SchoolTermsListView(terms, school))
   }
 
   def findAllWeeklyTimesheetBySchool(school_id: String) = Action.async { implicit request =>
@@ -93,6 +97,16 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
       val weeklyTimesheets: List[WeeklyTimesheet] = TimesheetHelper.findAllTimesheetsBySchool(school_id)
       Ok(views.html.schools.SchoolTimesheetListView(weeklyTimesheets, school))
     }
+  }
+
+  def findAllHolidaysBySchool(school_id: String) = Action.async { implicit request =>
+    val sc = SchoolHelper.findById(school_id)
+    val hl = HolidayHelper.findAllBySchool(school_id)
+    for {
+      school <- sc
+      holidays <- hl
+    } yield
+      Ok(views.html.schools.SchoolHolidayListView(holidays, school))
   }
 
   /**
@@ -124,6 +138,10 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
 
   def registerRate(school_id: String) = Action { implicit request =>
     Ok(views.html.schools.AddSchoolRate(RateHelper.flatRateRegistrationForm, RateHelper.bandedRateRegistrationForm, school_id))
+  }
+
+  def registerHoliday(school_id: String) = Action { implicit request =>
+    Ok(views.html.schools.AddSchoolHoiday(HolidayHelper.registerHolidayForm, school_id))
   }
 
   /**
@@ -164,6 +182,18 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
     )
   }
 
+  def addHoliday(school_id: String) = Action { implicit request =>
+    HolidayHelper.registerHolidayForm.bindFromRequest().fold(
+      formsWithError => BadRequest(views.html.schools.AddSchoolHoiday(formsWithError, school_id)),
+      holidayRegistrationData => {
+        Await.result(HolidayHelper.addHoliday(holidayRegistrationData, school_id), Duration.Inf) match {
+          case Some(holiday_id) => Redirect(routes.SchoolsController.findAllHolidaysBySchool(school_id))
+          case _ => BadRequest(views.html.schools.AddSchoolStudent(StudentHelper.registerStudentForm, school_id))
+        }
+      }
+    )
+  }
+
   /**
     * After the form for registering a term is submitted, the student is registered with the school.
     *
@@ -174,8 +204,10 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
     TermHelper.registerTermForm.bindFromRequest().fold(
       formsWithError => BadRequest(views.html.schools.AddSchoolTerm(formsWithError, school_id)),
       termRegistrationData => {
-        val term = models.common.TermHelper.addTerm(termRegistrationData, school_id)
-        Redirect(routes.SchoolsController.findAllTermsBySchool(school_id))
+        Await.result(models.common.TermHelper.addTerm(termRegistrationData, school_id), Duration.Inf) match {
+          case Some(term_id) => Redirect(routes.SchoolsController.findAllTermsBySchool(school_id))
+          case _ => BadRequest(views.html.schools.AddSchoolTerm(TermHelper.registerTermForm, school_id))
+        }
       }
     )
   }

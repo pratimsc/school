@@ -16,44 +16,31 @@
 
 package models.common
 
-import models.SchoolHelper
 import models.common.reference.Reference
 import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
+import org.maikalal.common.util.ArangodbDatabaseUtility
+import org.maikalal.common.util.ArangodbDatabaseUtility.{DBDocuments, DBEdges}
+import play.api.Logger
 import play.api.data.Form
 import play.api.data.Forms._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json.Writes._
+import play.api.libs.json._
 import play.api.libs.ws.WSClient
-import play.api.libs.ws.ning.NingWSClient
 
-import scala.collection.mutable
-import scala.collection.mutable.MutableList
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.concurrent.Future
 
 
 /**
   * Created by pratimsc on 04/01/16.
   */
-case class Term(term_id: Long, school_id: String, begin: DateTime, finish: DateTime, status: String)
+case class Term(term_id: String, begin: DateTime, finish: DateTime, status: String, timesheet: String, invoice: String)
 
 case class TermRegistrationData(begin: DateTime, finish: DateTime)
 
 object TermHelper {
-
-  private val initialDate = DateTime.parse("20160104", ISODateTimeFormat.basicDate)
-  var term_unique_id_count = 6
-  val termList: mutable.MutableList[Term] = mutable.MutableList()
-  /** MutableList(
-      * Term(1, SchoolHelper.schoolList.get(0).get.school_id, initialDate, initialDate.plusWeeks(12).plusDays(6), "A"),
-      * Term(2, SchoolHelper.schoolList.get(0).get.school_id, initialDate.plusWeeks(13), initialDate.plusWeeks(13 + 12).plusDays(6), "A"),
-      * Term(3, SchoolHelper.schoolList.get(0).get.school_id, initialDate.plusWeeks(13 + 13), initialDate.plusWeeks(13 + 13 + 12).plusDays(6), "A"),
-      * Term(4, SchoolHelper.schoolList.get(1).get.school_id, initialDate, initialDate.plusWeeks(12).plusDays(6), "A"),
-      * Term(5, SchoolHelper.schoolList.get(1).get.school_id, initialDate.plusWeeks(13), initialDate.plusWeeks(13 + 12).plusDays(6), "A"),
-      * Term(6, SchoolHelper.schoolList.get(1).get.school_id, initialDate.plusWeeks(13 + 13), initialDate.plusWeeks(13 + 13 + 12).plusDays(6), "A")
-    * )
-    **/
-  //nitialize all termsheets
-  implicit val ws = NingWSClient()
 
   private val termFormMaping = mapping(
     "begin_date" -> jodaDate("yyyy-MM-dd"),
@@ -62,15 +49,96 @@ object TermHelper {
 
   val registerTermForm = Form(termFormMaping)
 
+  implicit val registerTermJsonWrite: Writes[TermRegistrationData] = (
+    (__ \ "begin_date").write[DateTime] and
+      (__ \ "finish_date").write[DateTime]
+    ) (unlift(TermRegistrationData.unapply))
 
-  def findAllBySchool(school_id: String): List[Term] = ???
+  implicit val termJsonWrite: Writes[Term] = (
+    (__ \ "_id").write[String] and
+      (__ \ "begin_date").write[DateTime] and
+      (__ \ "finish_date").write[DateTime] and
+      (__ \ "status").write[String] and
+      (__ \ "timesheet").write[String] and
+      (__ \ "invoice").write[String]
+    ) (unlift(Term.unapply))
+  implicit val termJsonRead: Reads[Term] = (
+    (__ \ "_id").read[String] and
+      (__ \ "begin_date").read[DateTime] and
+      (__ \ "finish_date").read[DateTime] and
+      (__ \ "status").read[String] and
+      (__ \ "timesheet").read[String] and
+      (__ \ "invoice").read[String]
+    ) (Term.apply _)
 
-  def findById(term_id: Long, school_id: String): Option[Term] = ???
+  def findAllBySchool(school_id: String)(implicit ws: WSClient): Future[List[Term]] = {
+    val aql =
+      s"""
+         |FOR sc in ${DBDocuments.SCHOOLS}
+         |filter sc._id == "${school_id}" && sc.status != "${Reference.Status.DELETE}"
+         |FOR e in ${DBEdges.SCHOOL_HAS_TERM}
+         |filter e._from == sc._id
+         |FOR tr in ${DBDocuments.TERMS}
+         |filter tr._id == e._to && tr.status != "${Reference.Status.DELETE}"
+         |return tr
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"List of the terms based on the school id [${school_id}] is -> ${res.json}")
+      val terms: List[Term] = (res.json \ "result").as[List[Term]]
+      terms
+    }
+  }
 
-  def addTerm(trd: TermRegistrationData, school_id: String)(implicit ws: WSClient): Option[Term] = ???
+  def findById(term_id: String, school_id: String)(implicit ws: WSClient): Future[Option[Term]] = {
+    val aql =
+      s"""
+         |FOR sc in ${DBDocuments.SCHOOLS}
+         |filter sc._id == "${school_id}" && sc.status != "${Reference.Status.DELETE}"
+         |FOR e in ${DBEdges.SCHOOL_HAS_TERM}
+         |filter e._from == sc._id
+         |FOR tr in ${DBDocuments.TERMS}
+         |filter tr._id == e._to && tr._id== "${term_id}" && tr.status != "${Reference.Status.DELETE}"
+         |return tr
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"List of the terms based on the term id [${term_id}] and school id [${school_id}] is -> ${res.json}")
+      (res.json \ "result").as[List[Term]] match {
+        case h :: t => Some(h)
+        case Nil => None
+      }
+    }
+  }
+
+  def addTerm(trd: TermRegistrationData, school_id: String)(implicit ws: WSClient): Future[Option[String]] = {
+    val t_json: JsValue = Json.toJson(trd).as[JsObject] +
+      ("status", JsString(Reference.Status.ACTIVE)) +
+      ("timesheet", JsString(Reference.Term.Timesheet.ABSENT)) +
+      ("invoice", JsString(Reference.Term.Invoice.PENDING))
+    val aql =
+      s"""
+         |FOR sc in ${DBDocuments.SCHOOLS}
+         |  FILTER sc._id == "${school_id}" && sc.status != "${Reference.Status.DELETE}"
+         |  INSERT ${t_json} in ${DBDocuments.TERMS}
+         |  let trm = NEW
+         |  INSERT {
+         |  "_from":sc._id,
+         |  "_to":trm._id
+         |  }in ${DBEdges.SCHOOL_HAS_TERM}
+         |  let rel = NEW
+         |return {"term":trm, "school":sc, "relation":rel}
+      """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"Details of the term added ->${Json.prettyPrint(res.json)}")
+      val result = (res.json \ "result") (0)
+      val sc_json = result \ "school"
+      val st_json = result \ "term"
+      val term_id = (st_json \ "_id").as[String]
+      Some(term_id)
+    }
+  }
 
 
-  def purgeById(term_id: Long, school_id: String): Boolean = ???
+  def purgeById(term_id: Long, school_id: String)(implicit ws: WSClient): Boolean = ???
 
 }
 

@@ -226,11 +226,11 @@ object RateHelper {
     val aql =
       s"""
          |FOR sc in ${DBDocuments.SCHOOLS}
-         |filter sc._id == '${school_id}' && sc.status != '${Reference.STATUS.DELETE}'
+         |filter sc._id == '${school_id}' && sc.status != '${Reference.Status.DELETE}'
          |FOR e in ${DBEdges.SCHOOL_HAS_RATE}
          |filter e._from == sc._id
          |FOR rate in ${doc}
-         |filter rate._id == e._to && rate._id == '${rate_id}' && rate.status != '${Reference.STATUS.DELETE}'
+         |filter rate._id == e._to && rate._id == '${rate_id}' && rate.status != '${Reference.Status.DELETE}'
          |return rate
       """.stripMargin
     Logger.debug(s"AQL query for getting flat rate is -> ${aql}")
@@ -251,20 +251,20 @@ object RateHelper {
     val aql =
       s"""LET br = (
           |    FOR sc in ${DBDocuments.SCHOOLS}
-          |    FILTER sc._id == '${school_id}' && sc.status != '${Reference.STATUS.DELETE}'
+          |    FILTER sc._id == '${school_id}' && sc.status != '${Reference.Status.DELETE}'
           |    FOR e in ${DBEdges.SCHOOL_HAS_RATE}
           |    FILTER e._from == sc._id
           |    FOR br in ${DBDocuments.BANDED_RATES}
-          |    FILTER e._to == br._id && br.status != '${Reference.STATUS.DELETE}'
+          |    FILTER e._to == br._id && br.status != '${Reference.Status.DELETE}'
           |    RETURN br
           |)
           |LET fr = (
           |    FOR sc in ${DBDocuments.SCHOOLS}
-          |    FILTER sc._id == '${school_id}' && sc.status != '${Reference.STATUS.DELETE}'
+          |    FILTER sc._id == '${school_id}' && sc.status != '${Reference.Status.DELETE}'
           |    FOR e in ${DBEdges.SCHOOL_HAS_RATE}
           |    FILTER e._from == sc._id
           |    FOR fr in ${DBDocuments.FLAT_RATES}
-          |    FILTER e._to == fr._id && fr.status != '${Reference.STATUS.DELETE}'
+          |    FILTER e._to == fr._id && fr.status != '${Reference.Status.DELETE}'
           |    RETURN fr
           |)
           |RETURN {"${DBDocuments.FLAT_RATES}":fr, "${DBDocuments.BANDED_RATES}":br}
@@ -289,7 +289,7 @@ object RateHelper {
     val aql =
       s"""
          |FOR sc in ${DBDocuments.SCHOOLS}
-         |  FILTER sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
+         |  FILTER sc._id == "${school_id}" && sc.status != "${Reference.Status.DELETE}"
          |  INSERT ${fr_json} in ${DBDocuments.FLAT_RATES}
          |  let fr = NEW
          |  INSERT {"_from":sc._id, "_to":fr._id}in ${DBEdges.SCHOOL_HAS_RATE}
@@ -313,7 +313,7 @@ object RateHelper {
     val aql =
       s"""
          |FOR sc in ${DBDocuments.SCHOOLS}
-         |  FILTER sc._id == "${school_id}" && sc.status != "${Reference.STATUS.DELETE}"
+         |  FILTER sc._id == "${school_id}" && sc.status != "${Reference.Status.DELETE}"
          |  INSERT ${br_json} in ${DBDocuments.BANDED_RATES}
          |  let br = NEW
          |  INSERT {"_from":sc._id, "_to":br._id}in ${DBEdges.SCHOOL_HAS_RATE}

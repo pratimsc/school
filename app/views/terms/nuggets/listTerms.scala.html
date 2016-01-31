@@ -19,6 +19,8 @@
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Status</th>
+                        <th>Timesheet</th>
+                        <th>Invoice</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -29,15 +31,15 @@
                         <td> @DateUtility.fommattedDate(term.begin)</td>
                         <td>@DateUtility.fommattedDate(term.finish)</td>
                         <td>@term.status</td>
-
+                        <td>@term.timesheet</td>
+                        <td>@term.invoice</td>
                         <td>
-                        @school match {
-                            case Some(s) => {
-                                <a class="btn btn-success" href="@routes.TermsController.findByIdAndSchool(term.term_id, s.school_id)" role="button">View Details</a>
-                            }
-                            case None => {}
+                        @school.map { sc =>
+                            <a class="btn btn-success" href="@routes.TermsController.findByIdAndSchool(term.term_id, sc.school_id)" role="button">
+                                View Details</a>
+                            <a class="btn btn-warning" href="@routes.TermsController.findByIdAndSchool(term.term_id, sc.school_id)" role="button">
+                                Edit</a>
                         }
-
                         </td>
                     </tr>
                 }

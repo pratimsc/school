@@ -19,32 +19,24 @@ package controllers
 import javax.inject.Inject
 
 import models.SchoolHelper
-import models.common.TermHelper
+import models.common.HolidayHelper
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller}
 
 /**
-  * Created by pratimsc on 04/01/16.
+  * Created by pratimsc on 30/01/16.
   */
-class TermsController @Inject()(val messagesApi: MessagesApi, implicit val ws: WSClient) extends Controller with I18nSupport {
+class HolidayController @Inject()(val messagesApi: MessagesApi, implicit val ws: WSClient) extends Controller with I18nSupport {
 
-  def findByIdAndSchool(term_id: String, school_id: String) = Action.async { implicit request =>
+  def findByIdAndSchool(holiday_id: String, school_id: String) = Action.async { implicit request =>
     val sc = SchoolHelper.findById(school_id)
-    val tr = TermHelper.findById(term_id, school_id)
+    val hl = HolidayHelper.findByIdAndSchool(holiday_id, school_id)
     for {
       school <- sc
-      term <- tr
+      holiday <- hl
     } yield
-      Ok(views.html.terms.TermDetailView(term, school))
-  }
-
-  def findAllTimesheetsByTermAndSchool(term_id: String, school_id: String) = Action {
-    NotImplemented
-  }
-
-  def deleteByIdAndSchool(term_id: String, school_id: String) = Action {
-    NotImplemented
+      Ok(views.html.holidays.HolidayDetailView(holiday, school))
   }
 }

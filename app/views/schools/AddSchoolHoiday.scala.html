@@ -1,0 +1,35 @@
+@import helper._
+@import models.common.HolidayRegistrationData
+@import models.common.reference.Reference
+
+@(addHolidayForm: Form[HolidayRegistrationData], school_id: String)(implicit messages: Messages)
+
+@views.html.common.nuggets.head("Register Holiday")
+
+<div id="register_school_holiday">
+@form(action = routes.SchoolsController.addHoliday(school_id), 'class -> "form-horizontal") {
+
+    <div class="form-group">
+    @inputText(addHolidayForm("description"), '_label -> "Description", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
+    </div>
+
+    <div class="form-group">
+    @inputDate(addHolidayForm("date"),
+        '_label -> "Date Of Holiday", 'required -> "required", 'size -> 10, 'tabindex -> "2", '_showConstraints -> false)
+    </div>
+
+    <div class="form-group">
+    @select(addHolidayForm("status"),
+        options = Reference.statusList,
+        '_label -> "Status", 'tabindex -> "2", '_showConstraints -> false,
+        '_error -> addHolidayForm("status").error.map(_.withMessage(Messages("schools.holiday.add.status.error"))))
+    </div>
+
+    <a class="btn btn-primary" href="@routes.SchoolsController.findAllHolidaysBySchool(school_id)" role="button">
+        Back/Cancel</a>
+    <input class="btn btn-success" type="submit" value="Register Holiday" type="button">
+    }
+</div>
+
+
+@views.html.common.nuggets.body_scripts()
