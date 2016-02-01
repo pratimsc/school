@@ -32,7 +32,7 @@ class TermsController @Inject()(val messagesApi: MessagesApi, implicit val ws: W
 
   def findByIdAndSchool(term_id: String, school_id: String) = Action.async { implicit request =>
     val sc = SchoolHelper.findById(school_id)
-    val tr = TermHelper.findById(term_id, school_id)
+    val tr = TermHelper.findByIdAndSchool(term_id, school_id)
     for {
       school <- sc
       term <- tr
@@ -46,5 +46,18 @@ class TermsController @Inject()(val messagesApi: MessagesApi, implicit val ws: W
 
   def deleteByIdAndSchool(term_id: String, school_id: String) = Action {
     NotImplemented
+  }
+
+  def generateTimesheets(term_id: String, school_id: String) = Action.async {
+    val sc = SchoolHelper.findById(school_id)
+    val tr = TermHelper.findByIdAndSchool(term_id, school_id)
+    val ts = TermHelper.generateTimesheets(term_id, school_id)
+    for {
+      school <- sc
+      term <- tr
+      timesheets <- ts
+    } yield {
+      Ok(views.html.terms.TermTimesheetListView(timesheets, term, school))
+    }
   }
 }

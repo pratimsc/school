@@ -16,10 +16,13 @@
 
 package models.common
 
+import models.common.TimesheetHelper.dailyTimesheetReadJson
 import models.common.reference.Reference
-import org.joda.time.DateTime
-import org.maikalal.common.util.ArangodbDatabaseUtility
+import models.{School, SchoolHelper, Student, StudentHelper}
+import org.joda.time.{DateTime, Hours}
 import org.maikalal.common.util.ArangodbDatabaseUtility.{DBDocuments, DBEdges}
+import org.maikalal.common.util.DateUtility.hourJsonWrites
+import org.maikalal.common.util.{ArangodbDatabaseUtility, DateUtility}
 import play.api.Logger
 import play.api.data.Form
 import play.api.data.Forms._
@@ -36,7 +39,7 @@ import scala.concurrent.Future
 /**
   * Created by pratimsc on 04/01/16.
   */
-case class Term(term_id: String, begin: DateTime, finish: DateTime, status: String, timesheet: String, invoice: String)
+case class Term(term_id: String, begin: DateTime, finish: DateTime, status: String, timesheet_status: String, invoice_status: String)
 
 case class TermRegistrationData(begin: DateTime, finish: DateTime)
 
@@ -89,7 +92,7 @@ object TermHelper {
     }
   }
 
-  def findById(term_id: String, school_id: String)(implicit ws: WSClient): Future[Option[Term]] = {
+  def findByIdAndSchool(term_id: String, school_id: String)(implicit ws: WSClient): Future[Option[Term]] = {
     val aql =
       s"""
          |FOR sc in ${DBDocuments.SCHOOLS}
@@ -137,6 +140,88 @@ object TermHelper {
     }
   }
 
+  /**
+    *
+    * @param term_id
+    * @param school_id
+    * @param ws
+    * @return
+    */
+  def generateTimesheets(term_id: String, school_id: String)(implicit ws: WSClient): Future[List[DailyTimesheet]] = {
+    val sc: Future[Option[School]] = SchoolHelper.findById(school_id)
+    val st: Future[List[Student]] = StudentHelper.findAllBySchool(school_id)
+    val tr: Future[Option[Term]] = TermHelper.findByIdAndSchool(term_id, school_id)
+    val hl: Future[List[Holiday]] = HolidayHelper.findAllBySchool(school_id)
+
+    val ds: Future[Future[List[DailyTimesheet]]] = for {
+      school <- sc
+      term <- tr
+      students <- st
+      holidays <- hl
+    } yield {
+      term match {
+        case Some(t) =>
+          val tsl: Future[List[DailyTimesheet]] = Future.sequence(createTimesheetForStudentsInTerm(students, t, holidays.map(_.date)))
+          tsl
+        case None =>
+          Future.successful(Nil)
+      }
+    }
+    ds.flatMap(f => f)
+  }
+
+  /**
+    *
+    * @param students
+    * @param term
+    * @param holidays
+    * @param ws
+    * @return
+    */
+  private def createTimesheetForStudentsInTerm(students: List[Student], term: Term, holidays: List[DateTime])(implicit ws: WSClient): List[Future[DailyTimesheet]] = {
+    for {
+      date <- DateUtility.datesBetween(term.begin, term.finish)
+      student <- students
+    } yield
+      createDailyTimesheetForStudentInTerm(term.term_id, student.student_id, date, holidays)
+  }
+
+  /**
+    *
+    * @param term_id
+    * @param student_id
+    * @param date
+    * @param holidays
+    * @param ws
+    * @return
+    */
+  private def createDailyTimesheetForStudentInTerm(term_id: String, student_id: String, date: DateTime, holidays: List[DateTime])(implicit ws: WSClient): Future[DailyTimesheet] = {
+    val dt_json = Json.obj(
+      "date" -> date,
+      "recordedHours" -> Hours.ZERO,
+      "status" -> Reference.Status.ACTIVE,
+      "timesheet" -> {
+        if (DateUtility.dateIsWeekend(date) || DateUtility.dateIsHoliday(date, holidays))
+          Reference.DailyTimesheet.Timesheet.SUBMITED
+        else
+          Reference.DailyTimesheet.Timesheet.CREATED
+      }
+    )
+    val aql =
+      s"""
+         |INSERT ${dt_json} in ${DBDocuments.TIMESHEETS_DAILY}
+         |LET tsd = NEW
+         |INSERT{ "_from":${term_id}, "_to":tsd._id } IN ${DBEdges.TERM_HAS_TIMESHEET}
+         |INSERT{ "_from":${student_id}, "_to":tsd._id } IN ${DBEdges.STUDENT_HAS_TIMESHEET}
+         |RETURN {"dailyTimesheet":tsd}
+        """.stripMargin
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.
+      aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      val result: JsLookupResult = (res.json \ "result") (0)
+      val ts: DailyTimesheet = (result \ "dailyTimesheet").as[DailyTimesheet]
+      ts
+    }
+  }
 
   def purgeById(term_id: Long, school_id: String)(implicit ws: WSClient): Boolean = ???
 

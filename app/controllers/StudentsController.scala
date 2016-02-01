@@ -75,12 +75,13 @@ class StudentsController @Inject()(val messagesApi: MessagesApi, implicit val ws
 
   def findAllTimesheetsByStudentAndSchool(student_id: String, school_id: String) = Action.async {
     implicit request =>
-      val weeklyTimesheets = TimesheetHelper.findAllTimesheetsByStudent(student_id)
+      val wts = TimesheetHelper.findAllTimesheetsByStudent(student_id)
       val sc = SchoolHelper.findById(school_id)
       val st = StudentHelper.findByIdAndSchool(student_id, school_id)
       for {
         school <- sc
         student <- st
+        weeklyTimesheets <- wts
       } yield
         Ok(views.html.students.StudentTimesheetListView(weeklyTimesheets, student, school))
   }

@@ -17,8 +17,8 @@
 package org.maikalal.common.util
 
 import org.joda.money.{CurrencyUnit, Money}
+import org.joda.time._
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, Hours, Period}
 import play.api.Play
 import play.api.data.Forms._
 import play.api.data.Mapping
@@ -30,39 +30,66 @@ import play.api.libs.json._
   */
 object DateUtility {
 
-  val key_date_format: String = Play.current.configuration.getString("application.date.display.format").getOrElse("YYYY-MM-dd")
+  lazy val key_date_format: String = Play.current.configuration.getString("application.date.display.format").getOrElse("YYYY-MM-dd")
 
-  def fommattedDate(date: DateTime, format: String = key_date_format): String = DateTimeFormat.forPattern(format).print(date)
-
-  val hourFormMapping: Mapping[Hours] = mapping(
+  lazy val hourFormMapping: Mapping[Hours] = mapping(
     "hours" -> number
   )((h: Int) => Hours.hours(h))((h: Hours) => Some(h.getHours).asInstanceOf[Option[Int]])
 
-  val periodFormMapping: Mapping[Period] = mapping(
+  lazy val periodFormMapping: Mapping[Period] = mapping(
     "period" -> text
   )((p) => Period.parse(p))((p) => Some(p.toString).asInstanceOf[Option[String]])
 
-  implicit val hourJsonWrites: Writes[Hours] = (__ \ "hours").write[Int].contramap(_.getHours)
-  implicit val hourJsonReads: Reads[Hours] = (__ \ "hours").read[Int].map(Hours.hours _)
+  lazy implicit val hourJsonWrites: Writes[Hours] = (__ \ "hours").write[Int].contramap(_.getHours)
+  lazy implicit val hourJsonReads: Reads[Hours] = (__ \ "hours").read[Int].map(Hours.hours _)
 
-  implicit val periodJsonWrites: Writes[Period] = (__ \ "period").write[String].contramap(_.toString)
-  implicit val periodJsonReads: Reads[Period] = (__ \ "period").read[String].map(Period.parse _)
+  lazy implicit val periodJsonWrites: Writes[Period] = (__ \ "period").write[String].contramap(_.toString)
+  lazy implicit val periodJsonReads: Reads[Period] = (__ \ "period").read[String].map(Period.parse _)
 
+  def fommattedDate(date: DateTime, format: String = key_date_format): String = DateTimeFormat.forPattern(format).print(date)
+
+  def datesBetween(first: DateTime, second: DateTime): List[DateTime] = {
+    def dates(f: DateTime, l: DateTime, dl: List[DateTime]): List[DateTime] = {
+      if (f.isBefore(l))
+        dates(f.plusDays(1), l, f :: dl)
+      else
+        l :: dl
+    }
+    if (first.isBefore(second))
+      dates(first, second, List())
+    else
+      dates(second, first, List())
+  }
+
+  def dateIsWeekend(date: DateTime): Boolean = dateIsSaturday(date) || dateIsSunday(date)
+
+  def dateIsSaturday(date: DateTime): Boolean = (date.getDayOfWeek == 6)
+
+  def dateIsSunday(date: DateTime): Boolean = (date.getDayOfWeek == 7)
+
+  def datesAreSame(first: DateTime, second: DateTime, zone: DateTimeZone = DateTimeZone.UTC): Boolean = {
+    val ld1 = new LocalDate(first.withZone(zone))
+    val ld2 = new LocalDate(second.withZone(zone))
+    ld1.equals(ld2)
+  }
+
+  def dateIsHoliday(date: DateTime, holidays: List[DateTime]) = holidays.filter(datesAreSame(_, date)).size != 0
 }
 
+
 object MoneyUtility {
-  val moneyFormMapping: Mapping[Money] = mapping(
+  lazy val moneyFormMapping: Mapping[Money] = mapping(
     "currency" -> nonEmptyText(minLength = 3, maxLength = 3).transform((c: String) => CurrencyUnit.of(c), (c: CurrencyUnit) => c.toString),
     "amount" -> bigDecimal(10, 2)
   )((c, d) => Money.parse(c.toString + d.toString()))(m => Some((m.getCurrencyUnit, m.getAmount)).asInstanceOf[Option[(CurrencyUnit, BigDecimal)]])
 
-  implicit val moneyJsonWrites = new Writes[Money] {
+  lazy implicit val moneyJsonWrites = new Writes[Money] {
     override def writes(m: Money): JsValue = Json.obj(
       "currency" -> m.getCurrencyUnit.getCurrencyCode,
       "amount" -> m.getAmount.doubleValue())
   }
 
-  implicit val moneyJsonReads: Reads[Money] = new Reads[Money] {
+  lazy implicit val moneyJsonReads: Reads[Money] = new Reads[Money] {
     override def reads(json: JsValue): JsResult[Money] = {
       try {
         JsSuccess(Money.of(CurrencyUnit.of((json \ "currency").as[String]), (json \ "amount").as[Double]))

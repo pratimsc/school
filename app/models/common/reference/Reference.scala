@@ -40,6 +40,16 @@ object Reference {
     val CANCELLED = "CNCL"
   }
 
+  object DailyTimesheet {
+
+    object Timesheet {
+      val CREATED = "DRFT"
+      val SUBMITED = "SBMT"
+      val CLOSED = "CLSD"
+    }
+
+  }
+
   object Term {
 
     object Timesheet {

@@ -31,8 +31,8 @@
                         <td> @DateUtility.fommattedDate(term.begin)</td>
                         <td>@DateUtility.fommattedDate(term.finish)</td>
                         <td>@term.status</td>
-                        <td>@term.timesheet</td>
-                        <td>@term.invoice</td>
+                        <td>@term.timesheet_status</td>
+                        <td>@term.invoice_status</td>
                         <td>
                         @school.map { sc =>
                             <a class="btn btn-success" href="@routes.TermsController.findByIdAndSchool(term.term_id, sc.school_id)" role="button">

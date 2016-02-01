@@ -17,45 +17,50 @@
 package models.common
 
 import org.joda.time.{DateTime, Hours}
+import org.maikalal.common.util.DateUtility.{hourJsonReads, hourJsonWrites}
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json._
 import play.api.libs.ws.WSClient
 
 import scala.collection.immutable.Iterable
-import scala.collection.mutable.MutableList
+import scala.concurrent.Future
 
 /**
   * Created by pratimsc on 03/01/16.
   */
-case class DailyTimesheet(timesheet_id: String, date: DateTime, recordedHours: Hours, status: String)
+case class DailyTimesheet(timesheet_id: String, date: DateTime, recordedHours: Hours, status: String, timesheet_status: String)
 
 case class WeeklyTimesheet(weekly_timesheet_id: Long, term_id: Long, student_id: String, school_id: String, startsOn: DateTime, endsOn: DateTime, recordedHours: List[DailyTimesheet], status: String)
 
 object TimesheetHelper {
 
-  private var daily_timesheet_unique_id_count: Long = 0
+  implicit lazy val dailyTimesheetReadJson: Reads[DailyTimesheet] = (
+    (__ \ "_id").read[String] and
+      (__ \ "date").read[DateTime] and
+      (__ \ "recordedHours").read[Hours] and
+      (__ \ "status").read[String] and
+      (__ \ "timesheet").read[String]
+    ) (DailyTimesheet.apply _)
 
-  private var weekly_timesheet_unique_id_count: Long = 0
+  implicit lazy val dailyTimesheetWriteJson: Writes[DailyTimesheet] = (
+    (__ \ "_id").write[String] and
+      (__ \ "date").write[DateTime] and
+      (__ \ "recordedHours").write[Hours] and
+      (__ \ "status").write[String] and
+      (__ \ "timesheet").write[String]
+    ) (unlift(DailyTimesheet.unapply))
 
-  val dailyTimesheet: MutableList[DailyTimesheet] = MutableList()
 
-  val weeklyTimesheetList: MutableList[WeeklyTimesheet] = MutableList()
+  def findByIdAndSchool(timesheet_id: String, school_id: String)(implicit ws: WSClient): Future[Option[WeeklyTimesheet]] = ???
 
-  def findByIdAndSchool(timesheet_id: Long, school_id: String): Option[WeeklyTimesheet] = {
-    weeklyTimesheetList.find(e => (e.school_id == school_id && e.weekly_timesheet_id == timesheet_id))
-  }
+  def findAllTimesheetsByStudent(student_id: String)(implicit ws: WSClient): Future[List[WeeklyTimesheet]] = ???
 
-  def findAllTimesheetsByStudent(student_id: String): List[WeeklyTimesheet] = {
-    weeklyTimesheetList.filter(_.student_id == student_id).toList
-  }
+  def findAllTimesheetsByTermAndSchool(term_id: String, school_id: String)(implicit ws: WSClient): Future[List[WeeklyTimesheet]] = ???
 
-  def findAllTimesheetsByTermAndSchool(term_id: Long, school_id: String): List[WeeklyTimesheet] = {
-    weeklyTimesheetList.filter(e => (e.school_id == school_id && e.term_id == term_id)).toList
-  }
+  def findAllTimesheetsBySchool(school_id: String)(implicit ws: WSClient): Future[List[WeeklyTimesheet]] = ???
 
-  def findAllTimesheetsBySchool(school_id: String): List[WeeklyTimesheet] = {
-    weeklyTimesheetList.filter(_.school_id == school_id).toList
-  }
-
-  def populateTimesheet(t: Term, school_id: String)(implicit ws: WSClient): List[DailyTimesheet] = ???
+  def populateTimesheet(term_id: String, school_id: String)(implicit ws: WSClient): List[DailyTimesheet] = ???
 
 
   def purgeTimesheet(t: Term, school_id: String): Boolean = ???

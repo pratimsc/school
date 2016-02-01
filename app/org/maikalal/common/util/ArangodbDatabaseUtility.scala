@@ -80,6 +80,8 @@ object ArangodbDatabaseUtility {
     val SCHOOL_HAS_HOLIDAY = "has_holiday"
     val SCHOOL_HAS_TERM = "has_term"
     val STUDENT_RELATED_TO_GUARDIAN = "related_to"
+    val TERM_HAS_TIMESHEET = "has_timesheet"
+    val STUDENT_HAS_TIMESHEET = "has_timesheet"
   }
 
 

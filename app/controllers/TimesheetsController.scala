@@ -21,18 +21,21 @@ import javax.inject.Inject
 import models.SchoolHelper
 import models.common.TimesheetHelper
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 /**
   * Created by pratimsc on 03/01/16.
   */
 class TimesheetsController @Inject()(val messagesApi: MessagesApi, implicit val ws: WSClient) extends Controller with I18nSupport {
-  def findByIdAndSchool(timesheet_id: Long, school_id: String) = Action.async { implicit request =>
-    SchoolHelper.findById(school_id).map { school =>
-      val wts = TimesheetHelper.findByIdAndSchool(timesheet_id, school_id)
-      Ok(views.html.timesheets.DetailWeeklyTimesheets(wts, school))
-    }
+  def findByIdAndSchool(timesheet_id: String, school_id: String) = Action.async { implicit request =>
+    val sc = SchoolHelper.findById(school_id)
+    val wts = TimesheetHelper.findByIdAndSchool(timesheet_id, school_id)
+    for {
+      school <- sc
+      timesheets <- wts
+    } yield
+      Ok(views.html.timesheets.DetailWeeklyTimesheets(timesheets, school))
   }
 }

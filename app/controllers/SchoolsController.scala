@@ -93,10 +93,14 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
   }
 
   def findAllWeeklyTimesheetBySchool(school_id: String) = Action.async { implicit request =>
-    SchoolHelper.findById(school_id).map { school =>
-      val weeklyTimesheets: List[WeeklyTimesheet] = TimesheetHelper.findAllTimesheetsBySchool(school_id)
+    val sc = SchoolHelper.findById(school_id)
+    val wts = TimesheetHelper.findAllTimesheetsBySchool(school_id)
+    for {
+      school <- sc
+      weeklyTimesheets <- wts
+    } yield
       Ok(views.html.schools.SchoolTimesheetListView(weeklyTimesheets, school))
-    }
+
   }
 
   def findAllHolidaysBySchool(school_id: String) = Action.async { implicit request =>

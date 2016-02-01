@@ -4,94 +4,90 @@
 
 @(flatRate: Form[FlatRateRegistrationData], bandedRate: Form[BandedRateRegistrationData], school_id: String)(implicit messages: Messages)
 
-@views.html.common.nuggets.head("Register Rate")
+    @views.html.common.nuggets.head("Register Rate")
 
-<div id="register_school_rate">
-    <div id="rate_type_section" class="btn-group" data-toggle="buttons">
-        <label class="btn btn-primary">
-            <input type="radio" name="rate" id="rate.flat" > Flat Rate
-        </label>
-        <label class=" btn btn-primary">
-            <input type="radio" name="rate" id="rate.banded"> Banded Rate
-        </label>
-    </div>
+    <div id="register_school_rate">
+        <div id="rate_type_section" class="btn-group" >
+            <input class="btn btn-primary" type="button" name="rate" id="rate_flat" value="Flat Rate">
+            <input class="btn btn-primary" type="button" name="rate" id="rate_banded" value="Banded Rate">
+        </div>
 
-    <div id="flat_rate_form">
-    @form(action = routes.SchoolsController.addRate(school_id, 'F'), 'class -> "form-horizontal") {
-        <div class="form-group">
-            @inputText(flatRate("code"), '_label -> "Code", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
-            @inputText(flatRate("description"), '_label -> "Description", 'required -> "required", 'tabindex -> "2", 'class -> "form-control", '_showConstraints -> false)
-            @inputRadioGroup(flatRate("chargeOrRebate"), options = Reference.chargeOrRebateOption, '_label -> "Charge/Rebate", 'required -> "required", 'tabindex -> "3", 'class -> "form-control radio-inline", '_showConstraints -> false)
-            @select(flatRate("status"), options = Reference.statusList, '_label -> "Status", 'required -> "required", 'tabindex -> "6", 'class -> "form-control", '_showConstraints -> false)
-            @inputText(flatRate("price.amount"), '_label -> "Amount", 'required -> "required", 'tabindex -> "4", 'class -> "form-control", '_showConstraints -> false)
-            @select(flatRate("price.currency"), options = Reference.currencyList, '_label -> "Currency", 'required -> "required", 'tabindex -> "5", 'class -> "form-control", '_showConstraints -> false)
-        </div >
-        <a class="btn btn-primary" href="@routes.SchoolsController.findAllRatesBySchool(school_id)" role="button">
-            Back/Cancel
-        </a>
-        <input class="btn btn-success" type="submit" value="Register Rates" type="button">
-        }
-    </div>
+        <div id="flat_rate_form">
+        @form(action = routes.SchoolsController.addRate(school_id, 'F'), 'class -> "form-horizontal") {
+            <div class="form-group">
+                @inputText(flatRate("code"), '_label -> "Code", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
+                @inputText(flatRate("description"), '_label -> "Description", 'required -> "required", 'tabindex -> "2", 'class -> "form-control", '_showConstraints -> false)
+                @inputRadioGroup(flatRate("chargeOrRebate"), options = Reference.chargeOrRebateOption, '_label -> "Charge/Rebate", 'required -> "required", 'tabindex -> "3", 'class -> "form-control radio-inline", '_showConstraints -> false)
+                @select(flatRate("status"), options = Reference.statusList, '_label -> "Status", 'required -> "required", 'tabindex -> "6", 'class -> "form-control", '_showConstraints -> false)
+                @inputText(flatRate("price.amount"), '_label -> "Amount", 'required -> "required", 'tabindex -> "4", 'class -> "form-control", '_showConstraints -> false)
+                @select(flatRate("price.currency"), options = Reference.currencyList, '_label -> "Currency", 'required -> "required", 'tabindex -> "5", 'class -> "form-control", '_showConstraints -> false)
+            </div >
+            <a class="btn btn-primary" href="@routes.SchoolsController.findAllRatesBySchool(school_id)" role="button">
+                Back/Cancel
+            </a>
+            <input class="btn btn-success" type="submit" value="Register Rates" type="button">
+            }
+        </div>
 
-    <div id="banded_rate_form">
-    @form(action = routes.SchoolsController.addRate(school_id, 'B'), 'class -> "form-horizontal") {
-        <div class="form-group">
-            @inputText(bandedRate("code"), '_label -> "Code", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
-            @inputText(bandedRate("description"), '_label -> "Description", 'required -> "required", 'tabindex -> "2", 'class -> "form-control", '_showConstraints -> false)
-            @inputRadioGroup(bandedRate("chargeOrRebate"), options = Reference.chargeOrRebateOption, '_label -> "Charge/Rebate", 'required -> "required", 'tabindex -> "3", 'class -> "form-control radio-inline", '_showConstraints -> false)
-            @select(bandedRate("status"), options = Reference.statusList, '_label -> "Status", 'required -> "required", 'tabindex -> "6", 'class -> "form-control", '_showConstraints -> false)
-            @select(bandedRate("period.period"), options = Reference.periodList, '_label -> "Period", 'required -> "required", 'tabindex -> "7", 'class -> "form-control", '_showConstraints -> false)
-            <div id="band-group">
-                <table>
-                    <thead>
-                        <tr>
-                            <td>Lower Limit</td>
-                            <td>Upper Limit</td>
-                            <td>Rate</td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @for(i <- 0 to 2) {
-                        <tr>
-                            <td>
-                                <div class="input"><input type="text" name="bands[@i].lower_limit.hours" id="bands[@i].lower_limit.hours" class="form-control" value="0"></div>
-                                @bandedRate.error(s"bands[${i}].lower_limit.hours").map { error =>
-                                    <span class="error">@error.message</span>
+        <div id="banded_rate_form" class="hidden">
+        @form(action = routes.SchoolsController.addRate(school_id, 'B'), 'class -> "form-horizontal") {
+            <div class="form-group">
+                @inputText(bandedRate("code"), '_label -> "Code", 'required -> "required", 'tabindex -> "1", 'class -> "form-control", '_showConstraints -> false)
+                @inputText(bandedRate("description"), '_label -> "Description", 'required -> "required", 'tabindex -> "2", 'class -> "form-control", '_showConstraints -> false)
+                @inputRadioGroup(bandedRate("chargeOrRebate"), options = Reference.chargeOrRebateOption, '_label -> "Charge/Rebate", 'required -> "required", 'tabindex -> "3", 'class -> "form-control radio-inline", '_showConstraints -> false)
+                @select(bandedRate("status"), options = Reference.statusList, '_label -> "Status", 'required -> "required", 'tabindex -> "6", 'class -> "form-control", '_showConstraints -> false)
+                @select(bandedRate("period.period"), options = Reference.periodList, '_label -> "Period", 'required -> "required", 'tabindex -> "7", 'class -> "form-control", '_showConstraints -> false)
+                <div id="band-group">
+                    <table>
+                        <thead>
+                            <tr>
+                                <td>Lower Limit</td>
+                                <td>Upper Limit</td>
+                                <td>Rate</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @for(i <- 0 to 2) {
+                            <tr>
+                                <td>
+                                    <div class="input"><input type="text" name="bands[@i].lower_limit.hours" id="bands[@i].lower_limit.hours" class="form-control" value="0"></div>
+                                    @bandedRate.error(s"bands[${i}].lower_limit.hours").map { error =>
+                                        <span class="error">@error.message</span>
+                                    }
+
+                                </td>
+                                <td>
+                                    <div class="input"><input type="text" name="bands[@i].upper_limit.hours" id="bands[@i].upper_limit.hours" class="form-control" value="0"></div>
+                                    @bandedRate.error(s"bands[${i}].upper_limit.hours").map { error =>
+                                        <span class="error">@error.message</span>
                                 }
-
-                            </td>
-                            <td>
-                                <div class="input"><input type="text" name="bands[@i].upper_limit.hours" id="bands[@i].upper_limit.hours" class="form-control" value="0"></div>
-                                @bandedRate.error(s"bands[${i}].upper_limit.hours").map { error =>
-                                    <span class="error">@error.message</span>
-                            }
-                            <td>
-                                <div>
-                                    <input type="text" name="bands[@i].rate.amount" id="bands[@i].rate.amount" class="form-control" value=0.00>
-                                    <select class="form-control" id="bands[@i].rate.currency" name="bands[@i].rate.currency" required=true> @Reference.currencyList.map { e =>
-                                        <option value="@e._1" @if(e._1.equalsIgnoreCase(Reference.currencyList.head._1)) {
-                                            selected="selected"}>@e._1 </option>
-                                    }
-                                    </select>
-                                    @bandedRate.error(s"bands[${i}].rate.amount").map { error =>
-                                        <span class="error">@error.message</span>
-                                    }
-                                    @bandedRate.error(s"bands[${i}].rate.currency").map { error =>
-                                        <span class="error">@error.message</span>
-                                    }
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
-        </div >
-        <a class="btn btn-primary" href="@routes.SchoolsController.findAllRatesBySchool(school_id)" role="button">
-            Back/Cancel
-        </a>
-        <input class="btn btn-success" type="submit" value="Register Rates" type="button">
-        }
-    </div>
-</div >
-@views.html.common.nuggets.body_scripts()
+                                <td>
+                                    <div>
+                                        <input type="text" name="bands[@i].rate.amount" id="bands[@i].rate.amount" class="form-control" value=0.00>
+                                        <select class="form-control" id="bands[@i].rate.currency" name="bands[@i].rate.currency" required=true> @Reference.currencyList.map { e =>
+                                            <option value="@e._1" @if(e._1.equalsIgnoreCase(Reference.currencyList.head._1)) {
+                                                selected="selected"}>@e._1 </option>
+                                        }
+                                        </select>
+                                        @bandedRate.error(s"bands[${i}].rate.amount").map { error =>
+                                            <span class="error">@error.message</span>
+                                        }
+                                        @bandedRate.error(s"bands[${i}].rate.currency").map { error =>
+                                            <span class="error">@error.message</span>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div >
+            <a class="btn btn-primary" href="@routes.SchoolsController.findAllRatesBySchool(school_id)" role="button">
+                Back/Cancel
+            </a>
+            <input class="btn btn-success" type="submit" value="Register Rates" type="button">
+            }
+        </div>
+    </div >
+    @views.html.common.nuggets.body_scripts()

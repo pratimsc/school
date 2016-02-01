@@ -1,7 +1,8 @@
 @import models.common.WeeklyTimesheet
 @import models.common.Term
 
-@(wts: List[WeeklyTimesheet], term: Option[Term], school: Option[School])(implicit messages: Messages)
+@import models.common.DailyTimesheet
+@(wts: List[DailyTimesheet], term: Option[Term], school: Option[School])(implicit messages: Messages)
 
 @views.html.common.nuggets.head("Term Timesheet List View")
 
