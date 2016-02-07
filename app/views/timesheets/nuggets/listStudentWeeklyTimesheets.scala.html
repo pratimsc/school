@@ -1,60 +1,72 @@
-@import models.common.WeeklyTimesheet
-@(wts: List[WeeklyTimesheet])(implicit messages: Messages)
-@*
+@import models.common.reference.Reference
+@import models.common.{DailyTimesheet, TimesheetHelper}
+@import org.maikalal.common.util.DateUtility
+
+@(dtsl: List[DailyTimesheet])(implicit messages: Messages)
+
 <div id="student_weekly_timesheet_list" class="student_weekly_timesheet_list">
 
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th rowspan="3">Year</th>
+                <th rowspan="3">Week</th>
+                <th rowspan="3"> Date Range</th>
+                <th rowspan="3">Status</th>
+                <th rowspan="1" colspan="7">Recorded Time (Hours)</th>
+                <th rowspan="3">Actions</th>
+        <tr>
+            <tr>
+                <th>Monday</th>
+                <th>Tuesday</th>
+                <th>Wednesday</th>
+                <th>Thursday</th>
+                <th>Friday</th>
+                <th>Saturday</th>
+                <th>Sunday</th>
+            </tr>
+        </thead>
+        <tbody>
+            @dtsl match {
+                case Nil => {
+                    <tr>
+                        <td colspan="12">@Messages("schools.students.detail.timesheet.weekly.nodata")</td>
+                    </tr>
+                }
+                case h :: t => {
+                    @TimesheetHelper.convertDailyTimesheetsToWeeklyTimesheets(dtsl).map { wt =>
+                        <tr>
+                            <td>@wt.year</td>
+                            <td>@wt.week</td>
+                            <td>@DateUtility.fommattedDate(wt.startsOn) - @DateUtility.fommattedDate(wt.endsOn) </td>
+                            <td>@wt.status</td>
+                            @for(weekDay <- 1 to 7) {
+                                @wt.recordedHours.get(weekDay) match {
+                                    case Some(dts) => {
+                                        <td><input id="@dts.timesheet_id" type="text" class="form-control input-sm" value=@dts.recordedHours.getHours contenteditable=true> </td>
+                                    }
+                                    case None => {
+                                        <td><input type="text" class="form-control input-sm" value="-" disabled> </td>
+                                    }
+                                }
 
-<table class="table table-striped table-hover">
-<thead>
-<tr>
-<th rowspan="3">Time Id</th>
-<th rowspan="3">Week Id</th>
-<th rowspan="3">Week Range</th>
-<th rowspan="1" colspan="7">Recorded Time</th>
-<th rowspan="3">Status</th>
-<th rowspan="3">Actions</th>
-<tr>
-<tr>
-<th>Monday</th>
-<th>Tuesday</th>
-<th>Wednesday</th>
-<th>Thursday</th>
-<th>Friday</th>
-<th>Saturday</th>
-<th>Sunday</th>
-</tr>
-</thead>
-<tbody>
-@wts match {
-case Nil => {
-<tr>
-<td colspan="10">@Messages("schools.students.detail.timesheet.weekly.nodata")</td>
-</tr>
-}
-case h :: t => {
-@wts.map { wt =>
-<tr>
-<td>@wt.weekly_timesheet_id</td>
-<td>@wt.startsOn.weekyear().get() - @wt.startsOn.weekOfWeekyear().get()</td>
-<td>@wt.startsOn.toLocalDate to @wt.endsOn.toLocalDate</td>
-@wt.recordedHours.map { dt =>
-<td>@dt.recordedHours.getHours @dt.recordedHours.getFieldType</td>
-}
-<td>@wt.status</td>
-<td>
-<a class="btn btn-success" href="@routes.TimesheetsController.findByIdAndSchool(wt.weekly_timesheet_id, wt.school_id)" role="button">
-View</a>
-@if(wt.status.equalsIgnoreCase("S")) {
-<a class="btn btn-success" href="#" role="button"> Submit</a>
-}
-</td>
-</tr>
-}
+                            }
 
-}
-}
-</tbody>
-</table>
+                            <td>
+                            @wt.status match {
+                                case Reference.DailyTimesheet.Timesheet.CREATED => {
+                                    <a class="btn btn-warning" href="#" role="button">Submit</a>
+                                }
+
+                                case Reference.DailyTimesheet.Timesheet.SUBMITED => {
+                                }
+                            }
+        </td>
+        </tr>
+            }
+            }
+            }
+        </tbody>
+    </table>
 
 </div>
-*@

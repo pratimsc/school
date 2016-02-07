@@ -167,7 +167,24 @@ object TermHelper {
           Future.successful(Nil)
       }
     }
-    ds.flatMap(f => f)
+    val listOfTimesheets: Future[List[DailyTimesheet]] = ds.flatMap(f => f)
+    listOfTimesheets.onSuccess {
+      case list =>
+        //On successful addition of Timesheets update the status of Term
+        for {
+          term <- tr
+        } yield {
+          term match {
+            case Some(t) =>
+              updateTerm(t.copy(timesheet_status = Reference.Term.Timesheet.CREATED))
+            case None =>
+              Future.successful(Unit)
+          }
+        }
+
+    }
+
+    listOfTimesheets
   }
 
   /**
@@ -211,12 +228,14 @@ object TermHelper {
       s"""
          |INSERT ${dt_json} in ${DBDocuments.TIMESHEETS_DAILY}
          |LET tsd = NEW
-         |INSERT{ "_from":${term_id}, "_to":tsd._id } IN ${DBEdges.TERM_HAS_TIMESHEET}
-         |INSERT{ "_from":${student_id}, "_to":tsd._id } IN ${DBEdges.STUDENT_HAS_TIMESHEET}
-         |RETURN {"dailyTimesheet":tsd}
+         |FOR rels IN [{ "_from":"${term_id}", "_to":tsd._id }, { "_from":"${student_id}", "_to":tsd._id }]
+         |INSERT rels IN ${DBEdges.STUDENT_HAS_TIMESHEET}
+         |RETURN DISTINCT {"dailyTimesheet":tsd}
         """.stripMargin
+    Logger.debug(s"The AQL query for adding daily timesheet to a student is -> [ ${aql}]")
     ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.
       aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"Response after adding timesheet is -> [${res.json}]")
       val result: JsLookupResult = (res.json \ "result") (0)
       val ts: DailyTimesheet = (result \ "dailyTimesheet").as[DailyTimesheet]
       ts
@@ -224,6 +243,23 @@ object TermHelper {
   }
 
   def purgeById(term_id: Long, school_id: String)(implicit ws: WSClient): Boolean = ???
+
+  def updateTerm(t: Term)(implicit ws: WSClient): Future[Unit] = {
+    val json = (Json.toJson(t).as[JsObject]) - "_id"
+    val aql =
+      s"""
+         |FOR tr IN terms
+         |FILTER tr._id == "${t.term_id}"
+         |UPDATE tr WITH ${json}
+         |IN terms
+      """.stripMargin
+    Logger.debug(s"The AQL query for updating Term id is ->[${t.term_id}]")
+    ArangodbDatabaseUtility.databaseCursor().post(ArangodbDatabaseUtility.
+      aqlToCursorQueryAsJsonRequetBody(aql)).map { res =>
+      Logger.debug(s"Response after updating term is -> [${res.json}]")
+    }
+
+  }
 
 }
 

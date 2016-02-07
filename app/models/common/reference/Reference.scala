@@ -53,8 +53,8 @@ object Reference {
   object Term {
 
     object Timesheet {
-      val ABSENT = "ACTV"
-      val CREATED = "DRFT"
+      val ABSENT = "ABSNT"
+      val CREATED = "OPEN"
       val SUBMITED = "SBMT"
       val CLOSED = "CLSD"
     }

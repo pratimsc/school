@@ -1,8 +1,8 @@
 @import models.common._
 
-@(wts: Option[WeeklyTimesheet], school: Option[School])(implicit messages: Messages)
+@(wts: Option[DailyTimesheet], school: Option[School])(implicit messages: Messages)
 
-@views.html.common.nuggets.head("Weeklt Timesheet Detail View")
+    @views.html.common.nuggets.head("Weekly Timesheet Detail View")
 @*
 <div id="weekly_timesheet_detail_view" class="weekly_timesheet_detail_view">
 @school.map { sc =>

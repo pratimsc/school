@@ -38,11 +38,11 @@ GET           /schools/:school_id/students/:student_id/guardians/register       
 GET           /schools/:school_id/students/:student_id/guardians/all             controllers.StudentsController.findAllGuardiansByStudent(student_id:String,school_id:String)
 GET           /schools/:school_id/students/:student_id/rates                     controllers.StudentsController.findAllAppliedRates(student_id:String, school_id:String)
 GET           /schools/:school_id/students/:student_id/rates/all                 controllers.StudentsController.findAllAppliedRates(student_id:String, school_id:String)
-GET           /schools/:school_id/students/:student_id/timesheets                controllers.StudentsController.findAllTimesheetsByStudentAndSchool(student_id:String, school_id:String)
+GET           /schools/:school_id/students/:student_id/timesheets           controllers.StudentsController.findAllTimesheetsByStudentAndSchool(student_id:String, school_id:String)
 
 #Charges and Rebates related request
-GET           /schools/:school_id/rates                                          controllers.SchoolsController.findAllRatesBySchool(school_id:String)
-GET           /schools/:school_id/rates/all                                      controllers.SchoolsController.findAllRatesBySchool(school_id:String)
+GET           /schools/:school_id/rates                                     controllers.SchoolsController.findAllRatesBySchool(school_id:String)
+GET           /schools/:school_id/rates/all                                 controllers.SchoolsController.findAllRatesBySchool(school_id:String)
 GET           /schools/:school_id/rates/:rate_id                            controllers.RatesController.findRateById(rate_id:String,school_id:String)
 GET           /schools/:school_id/rates/:rate_id/students                   controllers.RatesController.findAllStudentsByRate(rate_id:String,school_id:String)
 

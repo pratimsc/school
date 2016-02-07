@@ -28,7 +28,7 @@
                 <div id="term_permitted_actions">
 
                     <div id="term_permitted_actions_view">
-                        <a class="btn btn-primary" href="@routes.TermsController.findAllTimesheetsByTermAndSchool(term.term_id, school.school_id)" role="button">
+                        <a id="term_timesheets_by_term_and_school" class="btn btn-primary" href="@routes.TermsController.findAllTimesheetsByTermAndSchool(term.term_id, school.school_id)" role="button">
                                 Time Sheets</a>
                     </div>
 
@@ -36,16 +36,15 @@
                         <a class="btn btn-warning" href="#" role="button">Edit</a>
                         @term.timesheet_status match {
                             case Reference.Term.Timesheet.ABSENT => {
-                                <a class="btn btn-warning" href="@routes.TermsController.generateTimesheets(term.term_id, school.school_id)" role="button">Generate TimeSheets</a>
+                                <a class="btn btn-warning" id="term_generate_timesheets" href="@routes.TermsController.generateTimesheets(term.term_id, school.school_id)" role="button">Generate TimeSheets</a>
                             }
                             case Reference.Term.Timesheet.CREATED => {
-                                <a class="btn btn-warning" href="#" role="button">Check Timesheet Submission</a>
+                                <a class="btn btn-primary" href="#" role="button">Check Timesheet Submission</a>
                             }
                             case Reference.Term.Timesheet.SUBMITED => {
                                 <a class="btn btn-warning" href="#" role="button">Generate Invoice</a>
                             }
                         }
-
                     </div>
                     <div id="term_permitted_actions_add">
                         <a class="btn btn-default" href="#" role="button">Add Time Sheets</a>

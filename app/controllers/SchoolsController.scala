@@ -97,9 +97,9 @@ class SchoolsController @Inject()(val messagesApi: MessagesApi, implicit val ws:
     val wts = TimesheetHelper.findAllTimesheetsBySchool(school_id)
     for {
       school <- sc
-      weeklyTimesheets <- wts
+      dailyTimesheets <- wts
     } yield
-      Ok(views.html.schools.SchoolTimesheetListView(weeklyTimesheets, school))
+      Ok(views.html.schools.SchoolTimesheetListView(dailyTimesheets, school))
 
   }
 

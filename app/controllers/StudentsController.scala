@@ -81,9 +81,9 @@ class StudentsController @Inject()(val messagesApi: MessagesApi, implicit val ws
       for {
         school <- sc
         student <- st
-        weeklyTimesheets <- wts
+        dailyTimesheets <- wts
       } yield
-        Ok(views.html.students.StudentTimesheetListView(weeklyTimesheets, student, school))
+        Ok(views.html.students.StudentTimesheetListView(dailyTimesheets, student, school))
   }
 
   def registerGuardian(student_id: String, school_id: String) = Action {

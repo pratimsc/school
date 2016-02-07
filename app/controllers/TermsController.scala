@@ -19,9 +19,12 @@ package controllers
 import javax.inject.Inject
 
 import models.SchoolHelper
-import models.common.TermHelper
+import models.common.TimesheetHelper.dailyTimesheetWriteJson
+import models.common.{TermHelper, TimesheetHelper}
+import play.api.http.HeaderNames
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, Controller}
 
@@ -40,15 +43,23 @@ class TermsController @Inject()(val messagesApi: MessagesApi, implicit val ws: W
       Ok(views.html.terms.TermDetailView(term, school))
   }
 
-  def findAllTimesheetsByTermAndSchool(term_id: String, school_id: String) = Action {
-    NotImplemented
+  def findAllTimesheetsByTermAndSchool(term_id: String, school_id: String) = Action.async { implicit request =>
+    val sc = SchoolHelper.findById(school_id)
+    val tr = TermHelper.findByIdAndSchool(term_id, school_id)
+    val ts = TimesheetHelper.findAllTimesheetsByTermAndSchool(term_id, school_id)
+    for {
+      school <- sc
+      term <- tr
+      timesheets <- ts
+    } yield
+      Ok(views.html.terms.TermTimesheetListView(timesheets, term, school))
   }
 
   def deleteByIdAndSchool(term_id: String, school_id: String) = Action {
     NotImplemented
   }
 
-  def generateTimesheets(term_id: String, school_id: String) = Action.async {
+  def generateTimesheets(term_id: String, school_id: String) = Action.async { implicit request =>
     val sc = SchoolHelper.findById(school_id)
     val tr = TermHelper.findByIdAndSchool(term_id, school_id)
     val ts = TermHelper.generateTimesheets(term_id, school_id)
@@ -57,7 +68,13 @@ class TermsController @Inject()(val messagesApi: MessagesApi, implicit val ws: W
       term <- tr
       timesheets <- ts
     } yield {
-      Ok(views.html.terms.TermTimesheetListView(timesheets, term, school))
+      request.headers.get(HeaderNames.ACCEPT) match {
+        case Some("text/html") =>
+          Ok(views.html.timesheets.nuggets.listTermWeeklyTimesheets(timesheets))
+        case Some("application/json") => Ok(Json.toJson(timesheets))
+        case _ =>
+          Ok(Json.toJson(timesheets))
+      }
     }
   }
 }

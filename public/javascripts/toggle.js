@@ -31,5 +31,16 @@ $(document).ready(function () {
         event.preventDefault();
     });
 
+    $("#term_generate_timesheets").click(function (event) {
+        event.preventDefault();
+        $.ajax({
+            url: this.href,
+            type: 'POST',
+            success: function (data) {
+                console.log(data);
+                window.location.href = $("#term_timesheets_by_term_and_school").attr('href')
+            }
+        });
+    });
 
 });
