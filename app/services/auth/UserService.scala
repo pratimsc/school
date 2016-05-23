@@ -22,6 +22,7 @@ import javax.inject._
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.api.services.IdentityService
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
+import dao.auth.UserDao
 import models.auth.{Profile, User}
 
 import scala.concurrent.Future

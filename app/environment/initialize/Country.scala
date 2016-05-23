@@ -19,6 +19,7 @@ package environment.initialize
 //Code for upoading the Country code to Orient db
 import java.io.File
 
+import akka.stream.Materializer
 import org.maikalal.common.util.ArangodbDatabaseUtility
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -59,7 +60,7 @@ object CountryInializer {
     countries
   }
 
-  def uploadCountries(countryFile: File)(implicit ws: WSClient = NingWSClient()) = {
+  def uploadCountries(countryFile: File)(implicit ws: WSClient ,  mat: Materializer) = {
     //"/home/pratimsc/codes/learning/attend01/public/reference/world_countries.csv"
     val countries: List[Country] = readDataFromCountryFile(countryFile)
     val result: List[Future[WSResponse]] = countries.map(uploadCountry(_))
